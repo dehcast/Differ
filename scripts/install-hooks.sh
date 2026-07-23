@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 # Install git hooks for Differ project
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -42,4 +43,6 @@ echo "Hooks will now:"
 echo "  • Run SwiftLint before every commit"
 echo "  • Run tests before every push"
 echo ""
-echo "Note: These checks cannot be bypassed to maintain code quality."
+echo "To temporarily disable, uninstall hooks and restore later:"
+echo "  rm .git/hooks/pre-commit .git/hooks/pre-push"
+echo "  ./scripts/install-hooks.sh"

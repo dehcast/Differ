@@ -72,10 +72,18 @@ If you've installed the git hooks, they will automatically:
 - Prevent commits with linting violations
 - Ensure tests pass before push
 
-To bypass hooks in emergencies (not recommended):
+### Temporarily Disabling Hooks
+
+To temporarily disable hooks (not recommended):
 ```bash
-git commit --no-verify
+# Uninstall
+rm .git/hooks/pre-commit .git/hooks/pre-push
+
+# Restore
+./scripts/install-hooks.sh
 ```
+
+Note: All commits **must** pass CI checks before merging, regardless of local hooks.
 
 ## Pull Request Requirements
 
@@ -85,6 +93,8 @@ git commit --no-verify
 - ✅ Build (release) - Release build must succeed
 - ✅ SwiftLint - Zero violations allowed
 - ✅ Check Module Compilation - All modules must compile
+- ✅ Test Coverage Report - Coverage data collected
+- ✅ Compilation Time Check - Build performance tracked
 
 ### Code Review
 - ✅ **1 approval required from @dehcast**
@@ -153,7 +163,7 @@ export GIT_CONFIG_KEY_0="safe.bareRepository"
 export GIT_CONFIG_VALUE_0="all"
 ```
 
-This is already configured in CI, but may be needed locally on Git 2.53+.
+This workaround is for local use on Git 2.53+ and is not currently needed in CI.
 
 ### SwiftLint Violations
 

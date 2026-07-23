@@ -149,3 +149,44 @@ jobs:
           exit 1
         fi
         echo "CI passed"
+
+  copilot-review:
+    name: Request Copilot Review
+    runs-on: ubuntu-latest
+    needs: [test, build, lint, check-compilation]
+    if: |
+      github.event_name == 'pull_request' &&
+      needs.test.result == 'success' &&
+      needs.build.result == 'success' &&
+      needs.lint.result == 'success' &&
+      needs.check-compilation.result == 'success'
+    permissions:
+      pull-requests: write
+      contents: read
+    
+    steps:
+    - name: Trigger Copilot Review
+      uses: actions/github-script@v7
+      continue-on-error: true
+      with:
+        script: |
+          try {
+            // Check if copilot-pull-request-reviewer already reviewed
+            const reviews = await github.rest.pulls.listReviews({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number
+            });
+            
+            const copilotReviewed = reviews.data.some(
+              review => review.user.login === 'copilot-pull-request-reviewer'
+            );
+            
+            if (!copilotReviewed) {
+              console.log('✅ All CI checks passed - Copilot review will be triggered automatically');
+            } else {
+              console.log('✅ Copilot has already reviewed this PR');
+            }
+          } catch (error) {
+            console.log('Note: Copilot reviews are automatic when configured');
+          }

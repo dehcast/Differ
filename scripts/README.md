@@ -32,9 +32,13 @@ Runs before every `git commit`.
 - SwiftLint in strict mode
 - Catches style violations before they reach CI
 
-**Bypass** (not recommended):
+**Temporarily disable**:
 ```bash
-git commit --no-verify
+# Uninstall hooks
+rm .git/hooks/pre-commit .git/hooks/pre-push
+
+# Restore later
+./scripts/install-hooks.sh
 ```
 
 #### `pre-push`
@@ -45,10 +49,7 @@ Runs before every `git push`.
 - DifferCore module tests
 - Ensures no broken tests reach remote
 
-**Bypass** (not recommended):
-```bash
-git push --no-verify
-```
+**Temporarily disable**: See pre-commit section above.
 
 ## Adding New Scripts
 
@@ -69,14 +70,12 @@ When adding scripts:
 
 set -e  # Exit on error
 
+# Set up error trap for friendly messages
+trap 'echo "❌ Task failed"' ERR
+
 echo "🔍 Starting task..."
 
 # Your script logic here
-
-if [ $? -ne 0 ]; then
-  echo "❌ Task failed"
-  exit 1
-fi
 
 echo "✅ Task completed"
 exit 0

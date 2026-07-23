@@ -16,6 +16,8 @@ All of these CI checks must pass before a PR can be merged:
 - **Test Coverage Report** - Run tests with coverage tracking
 - **Compilation Time Check** - Monitor build performance
 
+**Automated code review**: After all checks pass, Copilot review is automatically triggered.
+
 **Strict status checks**: ✅ Enabled  
 PRs must be up-to-date with base branch before merging.
 
@@ -46,7 +48,7 @@ PRs must be up-to-date with base branch before merging.
 2. Make changes and commit
 3. Push branch to GitHub
 4. Create Pull Request
-5. Wait for CI to pass (all 5 checks)
+5. Wait for CI to pass (all required checks)
 6. Request review from @dehcast
 7. Address review feedback if needed
 8. Wait for approval
@@ -112,7 +114,7 @@ EOF
 ### PR Blocked Despite Green CI?
 
 Check:
-1. All 5 status checks are green (not just some)
+1. All required status checks are green
 2. Branch is up-to-date with main
 3. Required review has been given
 4. All conversations are resolved

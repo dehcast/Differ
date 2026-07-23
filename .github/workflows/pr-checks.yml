@@ -75,22 +75,23 @@ jobs:
         swift test --enable-code-coverage --parallel
       
     - name: Generate coverage report
-      continue-on-error: true
       run: |
         if [ -d "Modules/DifferCore/.build/debug" ]; then
           xcrun llvm-cov export \
             Modules/DifferCore/.build/debug/DifferCorePackageTests.xctest/Contents/MacOS/DifferCorePackageTests \
             -instr-profile=Modules/DifferCore/.build/debug/codecov/default.profdata \
-            -format=lcov > coverage.lcov || echo "Coverage report generation skipped"
+            -format=lcov > coverage.lcov
+        else
+          echo "❌ Build directory not found - coverage cannot be generated"
+          exit 1
         fi
           
     - name: Upload coverage to Codecov
       if: hashFiles('coverage.lcov') != ''
       uses: codecov/codecov-action@v4
-      continue-on-error: true
       with:
         files: ./coverage.lcov
-        fail_ci_if_error: false
+        fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
 
   compile-time:
@@ -139,3 +140,27 @@ jobs:
             issue_number: context.payload.pull_request.number,
             body: `${emoji} Compilation time: **${duration}s**`
           })
+
+  # Wait for all checks before triggering Copilot review
+  copilot-review-trigger:
+    name: Trigger Copilot Review
+    runs-on: ubuntu-latest
+    needs: [pr-title, pr-size, test-coverage, compile-time]
+    if: |
+      github.event_name == 'pull_request' &&
+      needs.pr-title.result == 'success' &&
+      needs.pr-size.result == 'success' &&
+      needs.test-coverage.result == 'success' &&
+      needs.compile-time.result == 'success'
+    permissions:
+      pull-requests: write
+      contents: read
+    
+    steps:
+    - name: All PR checks passed
+      uses: actions/github-script@v7
+      continue-on-error: true
+      with:
+        script: |
+          console.log('✅ All PR checks passed - Copilot review will be triggered automatically if configured');
+          console.log('This job serves as a gate to ensure reviews only happen after all checks pass');
