@@ -10,7 +10,7 @@ final class TestListViewModelTests: XCTestCase {
     func testInit_WithTests() {
         let tests = [
             TestFixtures.passedTest,
-            TestFixtures.failedTest,
+            TestFixtures.failedTest
         ]
         
         let viewModel = TestListViewModel(tests: tests)

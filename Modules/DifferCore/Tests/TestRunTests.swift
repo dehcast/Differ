@@ -26,7 +26,7 @@ final class TestRunTests: XCTestCase {
         let tests = [
             makeSnapshotTest(status: .passed),
             makeSnapshotTest(status: .passed),
-            makeSnapshotTest(status: .failed),
+            makeSnapshotTest(status: .failed)
         ]
         
         let testRun = TestRun(xcresultPath: nil, startDate: Date(), testResults: tests)

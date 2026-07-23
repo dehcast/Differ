@@ -64,7 +64,7 @@ enum TestFixtures {
         failedTest,
         failedTest2,
         newTest,
-        missingTest,
+        missingTest
     ]
     
     static let failedTests = [failedTest, failedTest2]
