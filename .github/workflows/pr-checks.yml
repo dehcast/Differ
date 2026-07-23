@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   pr-title:
     name: Check PR Title
@@ -60,22 +64,31 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
       
     - name: Select Xcode version
       run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
       
-    - name: Run tests with coverage
-      run: swift test --enable-code-coverage
+    - name: Run DifferCore tests with coverage
+      run: |
+        cd Modules/DifferCore
+        swift test --enable-code-coverage --parallel
       
     - name: Generate coverage report
+      continue-on-error: true
       run: |
-        xcrun llvm-cov export \
-          .build/debug/DifferPackageTests.xctest/Contents/MacOS/DifferPackageTests \
-          -instr-profile=.build/debug/codecov/default.profdata \
-          -format=lcov > coverage.lcov || true
+        if [ -d "Modules/DifferCore/.build/debug" ]; then
+          xcrun llvm-cov export \
+            Modules/DifferCore/.build/debug/DifferCorePackageTests.xctest/Contents/MacOS/DifferCorePackageTests \
+            -instr-profile=Modules/DifferCore/.build/debug/codecov/default.profdata \
+            -format=lcov > coverage.lcov || echo "Coverage report generation skipped"
+        fi
           
     - name: Upload coverage to Codecov
+      if: hashFiles('coverage.lcov') != ''
       uses: codecov/codecov-action@v4
+      continue-on-error: true
       with:
         files: ./coverage.lcov
         fail_ci_if_error: false
@@ -84,10 +97,15 @@ jobs:
   compile-time:
     name: Compilation Time Check
     runs-on: macos-14
+    permissions:
+      pull-requests: write
+      contents: read
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
       
     - name: Select Xcode version
       run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
@@ -109,6 +127,7 @@ jobs:
       id: compile
       
     - name: Comment on PR
+      continue-on-error: true
       uses: actions/github-script@v7
       with:
         script: |
