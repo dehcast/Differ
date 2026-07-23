@@ -314,17 +314,52 @@ CI runs on every push/PR:
 
 ## Swift Agent Skills
 
-For enhanced AI assistance with Swift/SwiftUI development, check our fork of the community Swift agent skills catalog:
+We maintain a fork of the community Swift agent skills catalog as a git submodule:
 
-**[dehcast/Swift-Agent-Skills](https://github.com/dehcast/Swift-Agent-Skills)**
+**Location**: `.github/swift-agent-skills/`  
+**Upstream**: [dehcast/Swift-Agent-Skills](https://github.com/dehcast/Swift-Agent-Skills) (forked from twostraws/swift-agent-skills)
 
-Recommended skills for this project:
-- Swift Testing Pro - Better test writing
-- SwiftUI Pro - UI development patterns
-- Swift Concurrency Pro - Async/await best practices
-- iOS Code Audit - Code quality checks
+### Accessing the Skills Catalog
 
-Install skills to your Copilot environment as needed. See the catalog README for installation instructions.
+The catalog is included as a submodule. After cloning:
+
+```bash
+# Initialize and update submodule
+git submodule update --init --recursive
+
+# View the catalog
+open .github/swift-agent-skills/README.md
+```
+
+### Recommended Skills for Differ
+
+Based on our tech stack:
+- **Swift Testing Pro** - Better test writing and fixtures
+- **SwiftUI Pro** - UI development patterns
+- **Swift Concurrency Pro** - Async/await for image loading
+- **iOS Code Audit** - Catch issues before CI
+- **SwiftData Pro** - If we add persistence later
+
+### Installing Individual Skills
+
+Skills can be installed to your Copilot environment from the catalog:
+
+```bash
+# Example: Install Swift Testing Pro to user scope
+# See individual skill repos in the catalog for specific URLs
+```
+
+### Updating the Catalog
+
+To pull latest changes from upstream:
+
+```bash
+cd .github/swift-agent-skills
+git pull origin main
+cd ../..
+git add .github/swift-agent-skills
+git commit -m "chore: update swift-agent-skills catalog"
+```
 
 ## Performance Tips
 
