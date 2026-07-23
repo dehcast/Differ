@@ -13,6 +13,8 @@ All of these CI checks must pass before a PR can be merged:
 - **Build (release)** - Release configuration build  
 - **SwiftLint** - Code style and quality checks (strict mode)
 - **Check Module Compilation** - Verify all modules compile independently
+- **Test Coverage Report** - Run tests with coverage tracking
+- **Compilation Time Check** - Monitor build performance
 
 **Strict status checks**: ✅ Enabled  
 PRs must be up-to-date with base branch before merging.
@@ -71,7 +73,9 @@ gh api -X PUT repos/dehcast/Differ/branches/main/protection/required_status_chec
   -f contexts[]="Build (debug)" \
   -f contexts[]="Build (release)" \
   -f contexts[]="SwiftLint" \
-  -f contexts[]="Check Module Compilation"
+  -f contexts[]="Check Module Compilation" \
+  -f contexts[]="Test Coverage Report" \
+  -f contexts[]="Compilation Time Check"
 
 # Update review requirements
 gh api -X PATCH repos/dehcast/Differ/branches/main/protection/required_pull_request_reviews \
