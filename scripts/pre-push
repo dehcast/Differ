@@ -1,0 +1,25 @@
+#!/bin/bash
+# Pre-push hook for Differ project
+# Ensures tests pass before pushing
+
+echo "🧪 Running tests before push..."
+
+# Run core module tests
+cd Modules/DifferCore
+swift test --parallel --quiet 2>&1 | tail -3
+
+TEST_EXIT=${PIPESTATUS[0]}
+cd ../..
+
+if [ $TEST_EXIT -ne 0 ]; then
+  echo ""
+  echo "❌ Tests failed. Please fix them before pushing."
+  echo ""
+  echo "To see details: cd Modules/DifferCore && swift test"
+  echo ""
+  echo "To bypass this check (not recommended): git push --no-verify"
+  exit 1
+fi
+
+echo "✅ Tests passed"
+exit 0
