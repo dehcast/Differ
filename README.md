@@ -1,5 +1,8 @@
 # Differ
 
+[![CI](https://github.com/dehcast/Differ/actions/workflows/ci.yml/badge.svg)](https://github.com/dehcast/Differ/actions/workflows/ci.yml)
+[![Nightly](https://github.com/dehcast/Differ/actions/workflows/nightly.yml/badge.svg)](https://github.com/dehcast/Differ/actions/workflows/nightly.yml)
+
 A macOS native application for visualizing snapshot test failures and intelligently running only failed tests.
 
 ## Project Structure

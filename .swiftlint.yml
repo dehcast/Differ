@@ -1,0 +1,71 @@
+# SwiftLint configuration for Differ
+
+# Include all Swift files
+included:
+  - App
+  - Modules
+
+# Exclude build artifacts and dependencies
+excluded:
+  - .build
+  - .swiftpm
+  - Tests/__Snapshots__
+
+# Disable rules
+disabled_rules:
+  - trailing_whitespace
+  - todo # We use TODOs for Phase implementation
+  - line_length # SwiftUI sometimes needs longer lines
+
+# Opt-in rules
+opt_in_rules:
+  - empty_count
+  - empty_string
+  - explicit_init
+  - first_where
+  - sorted_first_last
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - empty_collection_literal
+  - last_where
+  - reduce_into
+  - toggle_bool
+  - unused_import
+
+# Rule configurations
+identifier_name:
+  min_length: 2
+  max_length: 50
+  excluded:
+    - id
+    - x
+    - y
+    - db
+
+type_name:
+  min_length: 3
+  max_length: 50
+
+function_body_length:
+  warning: 60
+  error: 100
+
+file_length:
+  warning: 500
+  error: 800
+
+type_body_length:
+  warning: 300
+  error: 500
+
+cyclomatic_complexity:
+  warning: 15
+  error: 25
+
+# Custom rules
+custom_rules:
+  no_print:
+    name: "No print statements"
+    regex: '\bprint\('
+    message: "Use logging instead of print()"
+    severity: warning

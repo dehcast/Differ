@@ -1,0 +1,123 @@
+name: PR Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-title:
+    name: Check PR Title
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check PR title format
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const title = context.payload.pull_request.title;
+          const validPrefixes = ['feat:', 'fix:', 'docs:', 'test:', 'refactor:', 'chore:', 'ci:', 'perf:'];
+          const hasValidPrefix = validPrefixes.some(prefix => title.toLowerCase().startsWith(prefix));
+          
+          if (!hasValidPrefix) {
+            core.setFailed(`PR title must start with one of: ${validPrefixes.join(', ')}`);
+          }
+
+  pr-size:
+    name: Check PR Size
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Check PR size
+      run: |
+        BASE_SHA=${{ github.event.pull_request.base.sha }}
+        HEAD_SHA=${{ github.event.pull_request.head.sha }}
+        
+        CHANGED_FILES=$(git diff --name-only $BASE_SHA $HEAD_SHA | wc -l)
+        LINES_ADDED=$(git diff --numstat $BASE_SHA $HEAD_SHA | awk '{sum+=$1} END {print sum}')
+        LINES_DELETED=$(git diff --numstat $BASE_SHA $HEAD_SHA | awk '{sum+=$2} END {print sum}')
+        
+        echo "Changed files: $CHANGED_FILES"
+        echo "Lines added: $LINES_ADDED"
+        echo "Lines deleted: $LINES_DELETED"
+        
+        if [ $CHANGED_FILES -gt 50 ]; then
+          echo "::warning::Large PR: $CHANGED_FILES files changed. Consider breaking into smaller PRs."
+        fi
+        
+        if [ $LINES_ADDED -gt 1000 ]; then
+          echo "::warning::Large PR: $LINES_ADDED lines added. Consider breaking into smaller PRs."
+        fi
+
+  test-coverage:
+    name: Test Coverage Report
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+      
+    - name: Run tests with coverage
+      run: swift test --enable-code-coverage
+      
+    - name: Generate coverage report
+      run: |
+        xcrun llvm-cov export \
+          .build/debug/DifferPackageTests.xctest/Contents/MacOS/DifferPackageTests \
+          -instr-profile=.build/debug/codecov/default.profdata \
+          -format=lcov > coverage.lcov || true
+          
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.lcov
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+  compile-time:
+    name: Compilation Time Check
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Select Xcode version
+      run: sudo xcode-select -s /Applications/Xcode_15.2.app/Contents/Developer
+      
+    - name: Measure compilation time
+      run: |
+        START=$(date +%s)
+        swift build
+        END=$(date +%s)
+        DURATION=$((END - START))
+        
+        echo "Compilation took ${DURATION} seconds"
+        
+        if [ $DURATION -gt 300 ]; then
+          echo "::warning::Slow compilation: ${DURATION}s (threshold: 300s)"
+        fi
+        
+        echo "compilation_time=${DURATION}" >> $GITHUB_OUTPUT
+      id: compile
+      
+    - name: Comment on PR
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const duration = ${{ steps.compile.outputs.compilation_time }};
+          const emoji = duration > 300 ? '🐌' : duration > 120 ? '⚠️' : '✅';
+          
+          github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: context.payload.pull_request.number,
+            body: `${emoji} Compilation time: **${duration}s**`
+          })
