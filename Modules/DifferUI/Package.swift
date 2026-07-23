@@ -15,6 +15,7 @@ let package = Package(
     dependencies: [
         .package(path: "../DifferCore"),
         .package(path: "../DifferKit"),
+        .package(path: "../DifferServices"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.15.0"),
     ],
     targets: [
@@ -22,7 +23,8 @@ let package = Package(
             name: "DifferUI",
             dependencies: [
                 .product(name: "DifferCore", package: "DifferCore"),
-                .product(name: "DifferKit", package: "DifferKit")
+                .product(name: "DifferKit", package: "DifferKit"),
+                .product(name: "DifferServices", package: "DifferServices")
             ],
             path: "Sources"
         ),

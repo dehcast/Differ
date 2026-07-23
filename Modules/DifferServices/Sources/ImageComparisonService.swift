@@ -66,7 +66,7 @@ public final class ImageComparisonService: ImageComparison {
             throw ImageComparisonError.dimensionMismatch
         }
         
-        let dimensions = (width: refRep.pixelsWide, height: refRep.pixelsHigh)
+        let dimensions = ImageDimensions(width: refRep.pixelsWide, height: refRep.pixelsHigh)
         
         // Perform comparison based on algorithm
         let (pixelDiff, percentDiff, perceptualDiff) = try await performComparison(
