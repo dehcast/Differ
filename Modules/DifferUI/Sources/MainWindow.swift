@@ -59,25 +59,34 @@ struct EmptyStateView: View {
 struct ToolbarView: View {
     var body: some View {
         HStack {
-            Button(action: {
-                // TODO: Open repository
-            }) {
-                Label("Open Repository", systemImage: "folder")
-            }
+            Button(
+                action: {
+                    // TODO: Open repository
+                },
+                label: {
+                    Label("Open Repository", systemImage: "folder")
+                }
+            )
             
-            Button(action: {
-                // TODO: Open XCResult
-            }) {
-                Label("Open XCResult", systemImage: "doc")
-            }
+            Button(
+                action: {
+                    // TODO: Open XCResult
+                },
+                label: {
+                    Label("Open XCResult", systemImage: "doc")
+                }
+            )
             
             Spacer()
             
-            Button(action: {
-                // TODO: Run tests
-            }) {
-                Label("Run Tests", systemImage: "play.fill")
-            }
+            Button(
+                action: {
+                    // TODO: Run tests
+                },
+                label: {
+                    Label("Run Tests", systemImage: "play.fill")
+                }
+            )
             .keyboardShortcut("r", modifiers: [.command])
         }
     }
