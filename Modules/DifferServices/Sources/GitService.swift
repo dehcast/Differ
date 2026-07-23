@@ -2,7 +2,7 @@ import Foundation
 import DifferCore
 
 /// Protocol for git operations
-public protocol GitOperations {
+public protocol GitOperations: Sendable {
     /// Detect git repository at the given path
     func detectRepository(at path: URL) async throws -> Repository?
     
@@ -29,7 +29,7 @@ public final class GitService: GitOperations {
     
     // MARK: - Configuration
     
-    public struct Configuration {
+    public struct Configuration: Sendable {
         public var gitPath: String
         
         public init(gitPath: String = "/usr/bin/git") {
@@ -52,8 +52,8 @@ public final class GitService: GitOperations {
         // Walk up the directory tree looking for .git
         var currentPath = path
         while currentPath.path != "/" {
-            let gitPath = currentPath.appendingPathComponent(".git")
-            if FileManager.default.fileExists(atPath: gitPath.path) {
+            let gitDir = currentPath.appendingPathComponent(".git")
+            if FileManager.default.fileExists(atPath: gitDir.path) {
                 return Repository(path: currentPath)
             }
             currentPath = currentPath.deletingLastPathComponent()

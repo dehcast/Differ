@@ -2,7 +2,7 @@ import Foundation
 import DifferCore
 
 /// Protocol for running tests
-public protocol TestExecution {
+public protocol TestExecution: Sendable {
     /// Execute specific tests and return the result
     func runTests(
         tests: [SnapshotTest],
@@ -11,15 +11,15 @@ public protocol TestExecution {
     ) async throws -> TestRun
     
     /// Cancel a running test execution
-    func cancelExecution()
+    func cancelExecution() async
 }
 
 /// Service for running xcodebuild tests
-public final class TestRunner: TestExecution {
+public actor TestRunner: TestExecution {
     
     // MARK: - Configuration
     
-    public struct Configuration {
+    public struct Configuration: Sendable {
         public var xcodebuildPath: String
         public var derivedDataPath: URL?
         
@@ -56,13 +56,17 @@ public final class TestRunner: TestExecution {
             configuration: configuration
         )
         
-        // Build xcodebuild command
+        // Build the xcodebuild command that a real implementation would run.
+        // xcodebuild test -scheme <scheme> -only-testing <test1> -only-testing <test2> ...
         let testSelectors = tests.map { test in
             "\(test.testTarget)/\(test.testName)"
         }
-        
-        // TODO: Execute xcodebuild with -only-testing flags
-        // xcodebuild test -scheme <scheme> -only-testing <test1> -only-testing <test2> ...
+        let arguments = buildXcodebuildCommand(
+            scheme: scheme,
+            testSelectors: testSelectors,
+            configuration: configuration
+        )
+        _ = try await executeXcodebuild(arguments: arguments)
         
         return testRun
     }

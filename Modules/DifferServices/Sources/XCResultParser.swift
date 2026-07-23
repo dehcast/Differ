@@ -2,7 +2,7 @@ import Foundation
 import DifferCore
 
 /// Protocol for parsing XCResult bundles
-public protocol XCResultParsing {
+public protocol XCResultParsing: Sendable {
     /// Parse an xcresult bundle and extract test results
     func parse(xcresultPath: URL) async throws -> TestRun
     
@@ -15,7 +15,7 @@ public final class XCResultParser: XCResultParsing {
     
     // MARK: - Configuration
     
-    public struct Configuration {
+    public struct Configuration: Sendable {
         public var xcresulttoolPath: String
         
         public init(xcresulttoolPath: String = "/usr/bin/xcrun") {

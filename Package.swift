@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
@@ -13,6 +13,8 @@ let package = Package(
         )
     ],
     dependencies: [
+        // External dependencies
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture", from: "1.15.0"),
         // Local module packages
         .package(path: "Modules/DifferCore"),
         .package(path: "Modules/DifferKit"),
@@ -23,6 +25,7 @@ let package = Package(
         .executableTarget(
             name: "Differ",
             dependencies: [
+                .product(name: "ComposableArchitecture", package: "swift-composable-architecture"),
                 .product(name: "DifferCore", package: "DifferCore"),
                 .product(name: "DifferKit", package: "DifferKit"),
                 .product(name: "DifferServices", package: "DifferServices"),

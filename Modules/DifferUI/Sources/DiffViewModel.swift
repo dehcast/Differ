@@ -29,6 +29,7 @@ final class DiffViewModel: ObservableObject {
     /// Load images and compute diff
     func loadImages() async {
         isLoading = true
+        error = nil
         defer { isLoading = false }
         
         do {

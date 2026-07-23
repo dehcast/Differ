@@ -19,6 +19,9 @@ public class AppState: ObservableObject {
     /// Whether a test is currently running
     @Published public var isRunningTests: Bool = false
     
+    /// User-facing message describing the most recent failure, if any
+    @Published public var errorMessage: String?
+    
     // MARK: - Services
     
     /// Image comparison service
@@ -57,8 +60,7 @@ public class AppState: ObservableObject {
                 self.currentRepository = repo
             }
         } catch {
-            // TODO: Implement proper error handling with logging framework
-            // Error: Failed to load repository
+            self.errorMessage = "Failed to load repository: \(error.localizedDescription)"
         }
     }
     
@@ -69,8 +71,7 @@ public class AppState: ObservableObject {
             let testRun = try await xcresultParser.parse(xcresultPath: url)
             self.currentTestRun = testRun
         } catch {
-            // TODO: Implement proper error handling with logging framework
-            // Error: Failed to parse XCResult
+            self.errorMessage = "Failed to open XCResult: \(error.localizedDescription)"
         }
     }
 }
