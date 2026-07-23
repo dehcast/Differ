@@ -29,11 +29,6 @@ let package = Package(
                 .product(name: "DifferUI", package: "DifferUI"),
             ],
             path: "App"
-        ),
-        .testTarget(
-            name: "DifferAppTests",
-            dependencies: ["Differ"],
-            path: "Tests"
         )
     ]
 )

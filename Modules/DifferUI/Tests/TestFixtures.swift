@@ -89,12 +89,13 @@ enum TestFixtures {
     // MARK: - Mock DiffResult
     
     static let sampleDiffResult = DiffResult(
-        pixelDifferenceCount: 1234,
-        pixelDifferencePercentage: 12.5,
+        pixelDifferences: 1234,
+        percentDifference: 12.5,
         perceptualDifference: 8.3,
-        imageDimensions: CGSize(width: 375, height: 667),
-        algorithm: .pixelByPixel,
-        computationTime: 0.045
+        width: 375,
+        height: 667,
+        computationTime: 0.045,
+        algorithm: .pixelByPixel
     )
     
     // MARK: - Mock TestRun

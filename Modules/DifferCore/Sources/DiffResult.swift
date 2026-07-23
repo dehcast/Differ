@@ -1,5 +1,16 @@
 import Foundation
 
+/// Image dimensions
+public struct ImageDimensions: Codable, Hashable {
+    public let width: Int
+    public let height: Int
+    
+    public init(width: Int, height: Int) {
+        self.width = width
+        self.height = height
+    }
+}
+
 /// Represents the result of comparing two images
 public struct DiffResult: Codable, Hashable {
     /// Number of pixels that are different
@@ -14,8 +25,8 @@ public struct DiffResult: Codable, Hashable {
     /// Perceptual difference score (0.0 - 1.0) using CIEDE2000 or similar
     public var perceptualDifference: Double?
     
-    /// Image dimensions (width, height)
-    public let dimensions: (width: Int, height: Int)
+    /// Image dimensions
+    public let dimensions: ImageDimensions
     
     /// Time taken to compute the diff
     public let computationTime: TimeInterval
@@ -28,7 +39,7 @@ public struct DiffResult: Codable, Hashable {
         percentDifference: Double,
         diffImagePath: URL? = nil,
         perceptualDifference: Double? = nil,
-        dimensions: (width: Int, height: Int),
+        dimensions: ImageDimensions,
         computationTime: TimeInterval,
         algorithm: DiffAlgorithm = .pixelByPixel
     ) {
@@ -39,6 +50,28 @@ public struct DiffResult: Codable, Hashable {
         self.dimensions = dimensions
         self.computationTime = computationTime
         self.algorithm = algorithm
+    }
+    
+    /// Convenience initializer with tuple dimensions (for backwards compatibility)
+    public init(
+        pixelDifferences: Int,
+        percentDifference: Double,
+        diffImagePath: URL? = nil,
+        perceptualDifference: Double? = nil,
+        width: Int,
+        height: Int,
+        computationTime: TimeInterval,
+        algorithm: DiffAlgorithm = .pixelByPixel
+    ) {
+        self.init(
+            pixelDifferences: pixelDifferences,
+            percentDifference: percentDifference,
+            diffImagePath: diffImagePath,
+            perceptualDifference: perceptualDifference,
+            dimensions: ImageDimensions(width: width, height: height),
+            computationTime: computationTime,
+            algorithm: algorithm
+        )
     }
     
     /// Returns true if images are identical (within tolerance)
@@ -54,36 +87,6 @@ public struct DiffResult: Codable, Hashable {
         return String(format: "%.2f%% different (%d pixels)", percentDifference, pixelDifferences)
     }
     
-    // Codable implementation for tuple
-    enum CodingKeys: String, CodingKey {
-        case pixelDifferences, percentDifference, diffImagePath
-        case perceptualDifference, width, height, computationTime, algorithm
-    }
-    
-    public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(pixelDifferences, forKey: .pixelDifferences)
-        try container.encode(percentDifference, forKey: .percentDifference)
-        try container.encodeIfPresent(diffImagePath, forKey: .diffImagePath)
-        try container.encodeIfPresent(perceptualDifference, forKey: .perceptualDifference)
-        try container.encode(dimensions.width, forKey: .width)
-        try container.encode(dimensions.height, forKey: .height)
-        try container.encode(computationTime, forKey: .computationTime)
-        try container.encode(algorithm, forKey: .algorithm)
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        pixelDifferences = try container.decode(Int.self, forKey: .pixelDifferences)
-        percentDifference = try container.decode(Double.self, forKey: .percentDifference)
-        diffImagePath = try container.decodeIfPresent(URL.self, forKey: .diffImagePath)
-        perceptualDifference = try container.decodeIfPresent(Double.self, forKey: .perceptualDifference)
-        let width = try container.decode(Int.self, forKey: .width)
-        let height = try container.decode(Int.self, forKey: .height)
-        dimensions = (width: width, height: height)
-        computationTime = try container.decode(TimeInterval.self, forKey: .computationTime)
-        algorithm = try container.decode(DiffAlgorithm.self, forKey: .algorithm)
-    }
 }
 
 /// Algorithm used for image comparison
