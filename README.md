@@ -73,7 +73,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for details.
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/dehcast/Differ.git
 cd Differ
 
 # Build
