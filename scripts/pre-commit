@@ -1,0 +1,24 @@
+#!/bin/bash
+# Pre-commit hook for Differ project
+# Runs SwiftLint to catch style violations before commit
+
+echo "🔍 Running SwiftLint..."
+
+# Run SwiftLint in strict mode
+swiftlint lint --strict --quiet
+
+SWIFTLINT_EXIT=$?
+
+if [ $SWIFTLINT_EXIT -ne 0 ]; then
+  echo ""
+  echo "❌ SwiftLint found violations. Please fix them before committing."
+  echo ""
+  echo "To see details: swiftlint lint"
+  echo "To auto-fix some issues: swiftlint --fix"
+  echo ""
+  echo "To bypass this check (not recommended): git commit --no-verify"
+  exit 1
+fi
+
+echo "✅ SwiftLint passed"
+exit 0
