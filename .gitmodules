@@ -1,0 +1,3 @@
+[submodule ".github/swift-agent-skills"]
+	path = .github/swift-agent-skills
+	url = https://github.com/dehcast/Swift-Agent-Skills.git

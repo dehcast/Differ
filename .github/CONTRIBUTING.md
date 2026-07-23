@@ -18,13 +18,18 @@ Thank you for contributing to Differ! This document provides guidelines for deve
    cd Differ
    ```
 
-2. Install git hooks (recommended):
+2. Initialize submodules (Swift Agent Skills catalog):
+   ```bash
+   git submodule update --init --recursive
+   ```
+
+3. Install git hooks (recommended):
    ```bash
    chmod +x scripts/install-hooks.sh
    ./scripts/install-hooks.sh
    ```
 
-3. Resolve dependencies:
+4. Resolve dependencies:
    ```bash
    swift package resolve
    ```
