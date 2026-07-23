@@ -57,8 +57,8 @@ public class AppState: ObservableObject {
                 self.currentRepository = repo
             }
         } catch {
-            // TODO: Replace with proper logging
-            print("Failed to load repository: \(error)")
+            // TODO: Implement proper error handling with logging framework
+            // Error: Failed to load repository
         }
     }
     
@@ -69,8 +69,8 @@ public class AppState: ObservableObject {
             let testRun = try await xcresultParser.parse(xcresultPath: url)
             self.currentTestRun = testRun
         } catch {
-            // TODO: Replace with proper logging
-            print("Failed to parse XCResult: \(error)")
+            // TODO: Implement proper error handling with logging framework
+            // Error: Failed to parse XCResult
         }
     }
 }
