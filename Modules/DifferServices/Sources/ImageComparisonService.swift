@@ -16,7 +16,7 @@ public protocol ImageComparison: Sendable {
         reference: NSImage,
         current: NSImage,
         highlightColor: NSColor
-    ) async throws -> NSImage
+    ) async throws -> sending NSImage
 }
 
 /// Service for comparing images and generating diffs
@@ -69,12 +69,14 @@ public final class ImageComparisonService: ImageComparison {
         reference: NSImage,
         current: NSImage,
         highlightColor: NSColor = .systemRed
-    ) async throws -> NSImage {
+    ) async throws -> sending NSImage {
         // TODO: Implement diff image generation
         // This will be implemented in Phase 1.2 (implement-pixel-diff task)
         
-        // Placeholder: return current image for now
-        return current
+        // Placeholder: return a fresh, empty image sized to match the input.
+        // A freshly constructed value is in its own isolation region, so it can
+        // be returned as `sending` across the actor boundary to the caller.
+        return NSImage(size: current.size)
     }
     
     // MARK: - Private Methods
