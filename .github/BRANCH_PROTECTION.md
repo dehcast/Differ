@@ -21,12 +21,13 @@ All of these CI checks must pass before a PR can be merged:
 **Strict status checks**: ✅ Enabled  
 PRs must be up-to-date with base branch before merging.
 
-### Pull Request Reviews ✅
+### Pull Request Reviews
 
-- **Required approving reviews**: 1
-- **Required reviewer**: @dehcast
+- **Required approving reviews**: 0 (solo maintainer project)
 - **Dismiss stale reviews**: ✅ Yes (on new pushes)
 - **Code owner review**: ❌ Not required
+
+**Note**: While approvals are not required by branch protection, all PRs should still be reviewed by the maintainer before merging. AI agents are explicitly prohibited from merging PRs.
 
 ### Push Restrictions 🔒
 
@@ -83,7 +84,7 @@ gh api -X PUT repos/dehcast/Differ/branches/main/protection/required_status_chec
 gh api -X PATCH repos/dehcast/Differ/branches/main/protection/required_pull_request_reviews \
   --input - <<EOF
 {
-  "required_approving_review_count": 1,
+  "required_approving_review_count": 0,
   "dismiss_stale_reviews": true,
   "require_code_owner_reviews": false
 }

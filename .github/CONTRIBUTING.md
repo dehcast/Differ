@@ -86,10 +86,12 @@ All commits **must** pass CI checks before merging.
 - ✅ Compilation Time Check - Build performance tracked
 
 ### Code Review
-- ✅ **1 approval required from @dehcast**
+- ✅ All PRs must be reviewed by maintainer before merging
 - ✅ Stale reviews dismissed on new pushes
 - ✅ All conversations must be resolved
 - ❌ No force-push allowed after review
+
+**Important**: AI agents are prohibited from merging PRs. See [merge policy](.github/instructions/merge-policy.instructions.md).
 
 ### PR Guidelines
 - Keep PRs focused and reasonably sized
