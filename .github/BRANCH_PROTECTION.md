@@ -16,7 +16,7 @@ All of these CI checks must pass before a PR can be merged:
 - **Test Coverage Report** - Run tests with coverage tracking
 - **Compilation Time Check** - Monitor build performance
 
-**Automated code review**: After all checks pass, Copilot review is automatically triggered.
+**Automated code review**: Copilot reviews PRs automatically when enabled in repository settings.
 
 **Strict status checks**: ✅ Enabled  
 PRs must be up-to-date with base branch before merging.

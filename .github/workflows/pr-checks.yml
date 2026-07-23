@@ -147,27 +147,3 @@ jobs:
             issue_number: context.payload.pull_request.number,
             body: `${emoji} Compilation time: **${duration}s**`
           })
-
-  # Wait for all checks before triggering Copilot review
-  copilot-review-trigger:
-    name: Trigger Copilot Review
-    runs-on: ubuntu-latest
-    needs: [pr-title, pr-size, test-coverage, compile-time]
-    if: |
-      github.event_name == 'pull_request' &&
-      needs.pr-title.result == 'success' &&
-      needs.pr-size.result == 'success' &&
-      needs.test-coverage.result == 'success' &&
-      needs.compile-time.result == 'success'
-    permissions:
-      pull-requests: write
-      contents: read
-    
-    steps:
-    - name: All PR checks passed
-      uses: actions/github-script@v7
-      continue-on-error: true
-      with:
-        script: |
-          console.log('✅ All PR checks passed - Copilot review will be triggered automatically if configured');
-          console.log('This job serves as a gate to ensure reviews only happen after all checks pass');
