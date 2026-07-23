@@ -81,18 +81,25 @@ jobs:
             Modules/DifferCore/.build/debug/DifferCorePackageTests.xctest/Contents/MacOS/DifferCorePackageTests \
             -instr-profile=Modules/DifferCore/.build/debug/codecov/default.profdata \
             -format=lcov > coverage.lcov
+          
+          echo "✅ Coverage report generated at coverage.lcov"
+          
+          # Show coverage summary
+          xcrun llvm-cov report \
+            Modules/DifferCore/.build/debug/DifferCorePackageTests.xctest/Contents/MacOS/DifferCorePackageTests \
+            -instr-profile=Modules/DifferCore/.build/debug/codecov/default.profdata
         else
           echo "❌ Build directory not found - coverage cannot be generated"
           exit 1
         fi
           
-    - name: Upload coverage to Codecov
+    - name: Upload coverage artifact
       if: hashFiles('coverage.lcov') != ''
-      uses: codecov/codecov-action@v7
+      uses: actions/upload-artifact@v4
       with:
-        files: ./coverage.lcov
-        fail_ci_if_error: true
-        token: ${{ secrets.CODECOV_TOKEN }}
+        name: coverage-report
+        path: coverage.lcov
+        retention-days: 7
 
   compile-time:
     name: Compilation Time Check
