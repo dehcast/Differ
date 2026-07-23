@@ -10,16 +10,14 @@ echo "🧪 Running tests before push..."
 
 # Run core module tests
 cd Modules/DifferCore || exit 1
-swift test --parallel --quiet 2>&1 | tail -3
+swift test --parallel
 
-TEST_EXIT=${PIPESTATUS[0]}
+TEST_EXIT=$?
 cd "$REPO_ROOT" || exit 1
 
 if [ $TEST_EXIT -ne 0 ]; then
   echo ""
   echo "❌ Tests failed. Please fix them before pushing."
-  echo ""
-  echo "To see details: cd Modules/DifferCore && swift test"
   echo ""
   exit 1
 fi

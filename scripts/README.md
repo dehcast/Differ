@@ -32,15 +32,6 @@ Runs before every `git commit`.
 - SwiftLint in strict mode
 - Catches style violations before they reach CI
 
-**Temporarily disable**:
-```bash
-# Uninstall hooks
-rm .git/hooks/pre-commit .git/hooks/pre-push
-
-# Restore later
-./scripts/install-hooks.sh
-```
-
 #### `pre-push`
 
 Runs before every `git push`.
@@ -48,8 +39,6 @@ Runs before every `git push`.
 **Checks**:
 - DifferCore module tests
 - Ensures no broken tests reach remote
-
-**Temporarily disable**: See pre-commit section above.
 
 ## Adding New Scripts
 

@@ -1,15 +1,17 @@
 #!/bin/bash
-set -euo pipefail
 # Install git hooks for Differ project
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GIT_DIR="$(git rev-parse --git-dir 2>/dev/null)"
 
-if [ -z "$GIT_DIR" ]; then
+# Check if in git repo (do this before set -euo pipefail so we can show custom error)
+if ! git rev-parse --git-dir &>/dev/null; then
   echo "❌ Error: Not in a git repository"
   exit 1
 fi
 
+set -euo pipefail
+
+GIT_DIR="$(git rev-parse --git-dir)"
 HOOKS_DIR="$GIT_DIR/hooks"
 
 echo "📦 Installing git hooks to $HOOKS_DIR"
@@ -42,7 +44,3 @@ echo ""
 echo "Hooks will now:"
 echo "  • Run SwiftLint before every commit"
 echo "  • Run tests before every push"
-echo ""
-echo "To temporarily disable, uninstall hooks and restore later:"
-echo "  rm .git/hooks/pre-commit .git/hooks/pre-push"
-echo "  ./scripts/install-hooks.sh"

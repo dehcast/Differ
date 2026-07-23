@@ -72,18 +72,7 @@ If you've installed the git hooks, they will automatically:
 - Prevent commits with linting violations
 - Ensure tests pass before push
 
-### Temporarily Disabling Hooks
-
-To temporarily disable hooks (not recommended):
-```bash
-# Uninstall
-rm .git/hooks/pre-commit .git/hooks/pre-push
-
-# Restore
-./scripts/install-hooks.sh
-```
-
-Note: All commits **must** pass CI checks before merging, regardless of local hooks.
+All commits **must** pass CI checks before merging.
 
 ## Pull Request Requirements
 
