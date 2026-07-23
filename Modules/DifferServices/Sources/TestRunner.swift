@@ -86,7 +86,7 @@ public final class TestRunner: TestExecution {
             arguments += ["-configuration", config]
         }
         
-        if let derivedData = configuration.derivedDataPath {
+        if let derivedData = self.configuration.derivedDataPath {
             arguments += ["-derivedDataPath", derivedData.path]
         }
         

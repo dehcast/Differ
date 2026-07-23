@@ -3,88 +3,108 @@ import XCTest
 
 final class DiffResultTests: XCTestCase {
     
-    // MARK: - Initialization
-    
     func testInit_WithAllProperties() {
         let result = DiffResult(
-            pixelDifferenceCount: 1500,
-            pixelDifferencePercentage: 15.5,
-            perceptualDifference: 8.2,
-            imageDimensions: CGSize(width: 375, height: 667),
-            algorithm: .pixelByPixel,
-            computationTime: 0.042
+            pixelDifferences: 1000,
+            percentDifference: 0.5,
+            diffImagePath: URL(fileURLWithPath: "/path/to/diff.png"),
+            perceptualDifference: 2.5,
+            width: 375, height: 667,
+            computationTime: 0.042,
+            algorithm: .pixelByPixel
         )
         
-        XCTAssertEqual(result.pixelDifferenceCount, 1500)
-        XCTAssertEqual(result.pixelDifferencePercentage, 15.5, accuracy: 0.01)
-        XCTAssertEqual(result.perceptualDifference, 8.2, accuracy: 0.01)
-        XCTAssertEqual(result.imageDimensions.width, 375)
-        XCTAssertEqual(result.imageDimensions.height, 667)
+        XCTAssertEqual(result.pixelDifferences, 1000)
+        XCTAssertEqual(result.percentDifference, 0.5)
+        XCTAssertEqual(result.perceptualDifference, 2.5)
+        XCTAssertEqual(result.dimensions.width, 375)
+        XCTAssertEqual(result.dimensions.height, 667)
         XCTAssertEqual(result.algorithm, .pixelByPixel)
         XCTAssertEqual(result.computationTime, 0.042, accuracy: 0.001)
     }
     
-    // MARK: - Percentage Calculation
-    
-    func testPercentageCalculation_SmallDifference() {
-        let totalPixels = 375 * 667 // 250,125 pixels
-        let differentPixels = 100
-        let percentage = Double(differentPixels) / Double(totalPixels) * 100
-        
+    func testInit_WithOptionalProperties() {
         let result = DiffResult(
-            pixelDifferenceCount: differentPixels,
-            pixelDifferencePercentage: percentage,
-            perceptualDifference: 0.5,
-            imageDimensions: CGSize(width: 375, height: 667),
-            algorithm: .pixelByPixel,
+            pixelDifferences: 0,
+            percentDifference: 0.0,
+            width: 200, height: 200,
             computationTime: 0.01
         )
         
-        XCTAssertEqual(result.pixelDifferencePercentage, 0.04, accuracy: 0.01)
+        XCTAssertNil(result.diffImagePath)
+        XCTAssertNil(result.perceptualDifference)
+        XCTAssertEqual(result.algorithm, .pixelByPixel) // default
     }
     
-    func testPercentageCalculation_LargeDifference() {
-        let totalPixels = 1000 * 1000 // 1,000,000 pixels
-        let differentPixels = 500_000
-        let percentage = Double(differentPixels) / Double(totalPixels) * 100
-        
+    func testAreIdentical_WithinTolerance() {
         let result = DiffResult(
-            pixelDifferenceCount: differentPixels,
-            pixelDifferencePercentage: percentage,
-            perceptualDifference: 50.0,
-            imageDimensions: CGSize(width: 1000, height: 1000),
-            algorithm: .pixelByPixel,
-            computationTime: 0.15
+            pixelDifferences: 50,
+            percentDifference: 0.005,
+            width: 375, height: 667,
+            computationTime: 0.01,
+            algorithm: .pixelByPixel
         )
         
-        XCTAssertEqual(result.pixelDifferencePercentage, 50.0, accuracy: 0.01)
+        XCTAssertTrue(result.areIdentical())
     }
     
-    func testPercentageCalculation_NoDifference() {
+    func testAreIdentical_OutsideTolerance() {
         let result = DiffResult(
-            pixelDifferenceCount: 0,
-            pixelDifferencePercentage: 0.0,
-            perceptualDifference: 0.0,
-            imageDimensions: CGSize(width: 500, height: 500),
-            algorithm: .pixelByPixel,
-            computationTime: 0.005
+            pixelDifferences: 10000,
+            percentDifference: 5.0,
+            width: 1000, height: 1000,
+            computationTime: 0.15,
+            algorithm: .pixelByPixel
         )
         
-        XCTAssertEqual(result.pixelDifferenceCount, 0)
-        XCTAssertEqual(result.pixelDifferencePercentage, 0.0)
-        XCTAssertEqual(result.perceptualDifference, 0.0)
+        XCTAssertFalse(result.areIdentical())
     }
     
-    // MARK: - Algorithm Types
+    func testAreIdentical_CustomTolerance() {
+        let result = DiffResult(
+            pixelDifferences: 2500,
+            percentDifference: 1.0,
+            width: 500, height: 500,
+            computationTime: 0.005,
+            algorithm: .pixelByPixel
+        )
+        
+        XCTAssertTrue(result.areIdentical(tolerance: 2.0))
+        XCTAssertFalse(result.areIdentical(tolerance: 0.5))
+    }
+    
+    func testDescription_Identical() {
+        let result = DiffResult(
+            pixelDifferences: 0,
+            percentDifference: 0.0,
+            width: 100, height: 100,
+            computationTime: 0.01,
+            algorithm: .pixelByPixel
+        )
+        
+        XCTAssertEqual(result.description, "Images are identical")
+    }
+    
+    func testDescription_Different() {
+        let result = DiffResult(
+            pixelDifferences: 500,
+            percentDifference: 2.5,
+            width: 100, height: 100,
+            computationTime: 0.01,
+            algorithm: .pixelByPixel
+        )
+        
+        XCTAssertTrue(result.description.contains("2.50% different"))
+        XCTAssertTrue(result.description.contains("500 pixels"))
+    }
     
     func testAlgorithm_PixelByPixel() {
         let result = DiffResult(
-            pixelDifferenceCount: 100,
-            pixelDifferencePercentage: 1.0,
-            perceptualDifference: 0.5,
-            imageDimensions: CGSize(width: 100, height: 100),
-            algorithm: .pixelByPixel,
-            computationTime: 0.01
+            pixelDifferences: 100,
+            percentDifference: 1.0,
+            width: 100, height: 100,
+            computationTime: 0.01,
+            algorithm: .pixelByPixel
         )
         
         XCTAssertEqual(result.algorithm, .pixelByPixel)
@@ -92,82 +112,66 @@ final class DiffResultTests: XCTestCase {
     
     func testAlgorithm_Perceptual() {
         let result = DiffResult(
-            pixelDifferenceCount: 100,
-            pixelDifferencePercentage: 1.0,
-            perceptualDifference: 2.5,
-            imageDimensions: CGSize(width: 100, height: 100),
-            algorithm: .perceptual,
-            computationTime: 0.05
+            pixelDifferences: 50,
+            percentDifference: 0.5,
+            perceptualDifference: 1.8,
+            width: 100, height: 100,
+            computationTime: 0.05,
+            algorithm: .perceptual
         )
         
         XCTAssertEqual(result.algorithm, .perceptual)
     }
     
-    func testAlgorithm_StructuralSimilarity() {
+    func testAlgorithm_Structural() {
         let result = DiffResult(
-            pixelDifferenceCount: 100,
-            pixelDifferencePercentage: 1.0,
+            pixelDifferences: 200,
+            percentDifference: 2.0,
             perceptualDifference: 1.8,
-            imageDimensions: CGSize(width: 100, height: 100),
-            algorithm: .structuralSimilarity,
-            computationTime: 0.08
+            width: 100, height: 100,
+            computationTime: 0.08,
+            algorithm: .structural
         )
         
-        XCTAssertEqual(result.algorithm, .structuralSimilarity)
+        XCTAssertEqual(result.algorithm, .structural)
     }
     
-    // MARK: - Performance Metrics
-    
-    func testComputationTime_Fast() {
+    func testPerceptualDifference() {
         let result = DiffResult(
-            pixelDifferenceCount: 10,
-            pixelDifferencePercentage: 0.1,
-            perceptualDifference: 0.05,
-            imageDimensions: CGSize(width: 100, height: 100),
-            algorithm: .pixelByPixel,
-            computationTime: 0.001
+            pixelDifferences: 100,
+            percentDifference: 1.0,
+            perceptualDifference: 3.2,
+            width: 100, height: 100,
+            computationTime: 0.001,
+            algorithm: .pixelByPixel
         )
         
-        XCTAssertLessThan(result.computationTime, 0.01, "Computation should be very fast for small images")
+        XCTAssertEqual(result.perceptualDifference, 3.2)
     }
     
-    func testComputationTime_Slow() {
+    func testComputationTime() {
         let result = DiffResult(
-            pixelDifferenceCount: 100_000,
-            pixelDifferencePercentage: 10.0,
-            perceptualDifference: 5.0,
-            imageDimensions: CGSize(width: 2000, height: 2000),
-            algorithm: .perceptual,
-            computationTime: 1.5
+            pixelDifferences: 1000000,
+            percentDifference: 25.0,
+            width: 2000, height: 2000,
+            computationTime: 1.5,
+            algorithm: .perceptual
         )
         
-        XCTAssertGreaterThan(result.computationTime, 1.0, "Computation should be slower for large images with perceptual algorithm")
+        XCTAssertEqual(result.computationTime, 1.5, accuracy: 0.001)
     }
     
-    // MARK: - Codable
-    
-    func testCodable_EncodeDecode() throws {
-        let original = DiffResult(
-            pixelDifferenceCount: 2500,
-            pixelDifferencePercentage: 25.0,
+    func testDimensions() {
+        let result = DiffResult(
+            pixelDifferences: 62500,
+            percentDifference: 25.0,
             perceptualDifference: 12.5,
-            imageDimensions: CGSize(width: 500, height: 500),
-            algorithm: .structuralSimilarity,
-            computationTime: 0.125
+            width: 500, height: 500,
+            computationTime: 0.125,
+            algorithm: .structural
         )
         
-        let encoder = JSONEncoder()
-        let data = try encoder.encode(original)
-        
-        let decoder = JSONDecoder()
-        let decoded = try decoder.decode(DiffResult.self, from: data)
-        
-        XCTAssertEqual(decoded.pixelDifferenceCount, original.pixelDifferenceCount)
-        XCTAssertEqual(decoded.pixelDifferencePercentage, original.pixelDifferencePercentage, accuracy: 0.01)
-        XCTAssertEqual(decoded.perceptualDifference, original.perceptualDifference, accuracy: 0.01)
-        XCTAssertEqual(decoded.imageDimensions.width, original.imageDimensions.width)
-        XCTAssertEqual(decoded.imageDimensions.height, original.imageDimensions.height)
-        XCTAssertEqual(decoded.algorithm, original.algorithm)
-        XCTAssertEqual(decoded.computationTime, original.computationTime, accuracy: 0.001)
+        XCTAssertEqual(result.dimensions.width, 500)
+        XCTAssertEqual(result.dimensions.height, 500)
     }
 }

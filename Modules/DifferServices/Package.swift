@@ -17,7 +17,7 @@ let package = Package(
         .package(path: "../DifferKit"),
         // External dependencies
         .package(url: "https://github.com/davidahouse/XCResultKit.git", from: "1.0.0"),
-        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0"),
+        .package(url: "https://github.com/apple/swift-log.git", from: "1.0.0")
     ],
     targets: [
         .target(

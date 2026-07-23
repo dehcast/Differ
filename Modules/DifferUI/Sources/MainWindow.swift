@@ -3,11 +3,13 @@ import DifferCore
 import DifferServices
 
 /// Main window of the Differ app
-struct MainWindow: View {
+public struct MainWindow: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var testListViewModel = TestListViewModel()
     
-    var body: some View {
+    public init() {}
+    
+    public var body: some View {
         NavigationSplitView {
             // Sidebar: Test list
             TestListView(viewModel: testListViewModel)
@@ -26,7 +28,7 @@ struct MainWindow: View {
         .toolbar {
             ToolbarView()
         }
-        .onChange(of: appState.currentTestRun) { _, newTestRun in
+        .onChange(of: appState.currentTestRun) { newTestRun in
             if let testRun = newTestRun {
                 testListViewModel.loadTests(from: testRun)
             }
@@ -57,25 +59,34 @@ struct EmptyStateView: View {
 struct ToolbarView: View {
     var body: some View {
         HStack {
-            Button(action: {
-                // TODO: Open repository
-            }) {
-                Label("Open Repository", systemImage: "folder")
-            }
+            Button(
+                action: {
+                    // TODO: Open repository
+                },
+                label: {
+                    Label("Open Repository", systemImage: "folder")
+                }
+            )
             
-            Button(action: {
-                // TODO: Open XCResult
-            }) {
-                Label("Open XCResult", systemImage: "doc")
-            }
+            Button(
+                action: {
+                    // TODO: Open XCResult
+                },
+                label: {
+                    Label("Open XCResult", systemImage: "doc")
+                }
+            )
             
             Spacer()
             
-            Button(action: {
-                // TODO: Run tests
-            }) {
-                Label("Run Tests", systemImage: "play.fill")
-            }
+            Button(
+                action: {
+                    // TODO: Run tests
+                },
+                label: {
+                    Label("Run Tests", systemImage: "play.fill")
+                }
+            )
             .keyboardShortcut("r", modifiers: [.command])
         }
     }

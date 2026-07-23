@@ -116,10 +116,10 @@ public struct GitFileChange: Identifiable, Codable {
     }
     
     public enum ChangeType: String, Codable {
-        case added = "added"
-        case modified = "modified"
-        case deleted = "deleted"
-        case renamed = "renamed"
+        case added
+        case modified
+        case deleted
+        case renamed
         
         var iconName: String {
             switch self {

@@ -10,6 +10,10 @@ excluded:
   - .build
   - .swiftpm
   - Tests/__Snapshots__
+  - "**/. build"
+  - "**/.swiftpm"
+  - Modules/**/.build
+  - Modules/**/.swiftpm
 
 # Disable rules
 disabled_rules:

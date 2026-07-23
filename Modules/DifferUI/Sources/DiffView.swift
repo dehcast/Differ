@@ -248,11 +248,14 @@ struct DiffToolbarView: View {
             Spacer()
             
             // Actions
-            Button(action: {
-                // TODO: Approve snapshot
-            }) {
-                Label("Approve", systemImage: "checkmark.circle")
-            }
+            Button(
+                action: {
+                    // TODO: Approve snapshot
+                },
+                label: {
+                    Label("Approve", systemImage: "checkmark.circle")
+                }
+            )
             .keyboardShortcut("a", modifiers: [.command])
         }
         .padding()

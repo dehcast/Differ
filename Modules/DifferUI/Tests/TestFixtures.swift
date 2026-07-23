@@ -21,58 +21,42 @@ enum TestFixtures {
     // MARK: - Mock SnapshotTests
     
     static let passedTest = SnapshotTest(
-        id: "test-passed-1",
-        name: "ProfileViewTests.testUserProfileLayout",
-        status: .passed,
+        testName: "ProfileViewTests.testUserProfileLayout",
+        testTarget: "DifferUITests",
         referenceImagePath: URL(fileURLWithPath: "/path/to/reference.png"),
-        failedImagePath: nil,
-        diffImagePath: nil,
-        testClass: "ProfileViewTests",
-        testMethod: "testUserProfileLayout"
+        status: .passed
     )
     
     static let failedTest = SnapshotTest(
-        id: "test-failed-1",
-        name: "LoginViewTests.testLoginButtonState",
-        status: .failed,
+        testName: "LoginViewTests.testLoginButtonState",
+        testTarget: "DifferUITests",
         referenceImagePath: URL(fileURLWithPath: "/path/to/reference.png"),
         failedImagePath: URL(fileURLWithPath: "/path/to/failed.png"),
         diffImagePath: URL(fileURLWithPath: "/path/to/diff.png"),
-        testClass: "LoginViewTests",
-        testMethod: "testLoginButtonState"
+        status: .failed
     )
     
     static let failedTest2 = SnapshotTest(
-        id: "test-failed-2",
-        name: "SettingsViewTests.testDarkModeToggle",
-        status: .failed,
+        testName: "SettingsViewTests.testDarkModeToggle",
+        testTarget: "DifferUITests",
         referenceImagePath: URL(fileURLWithPath: "/path/to/settings_ref.png"),
         failedImagePath: URL(fileURLWithPath: "/path/to/settings_failed.png"),
         diffImagePath: URL(fileURLWithPath: "/path/to/settings_diff.png"),
-        testClass: "SettingsViewTests",
-        testMethod: "testDarkModeToggle"
+        status: .failed
     )
     
     static let newTest = SnapshotTest(
-        id: "test-new-1",
-        name: "DashboardTests.testEmptyState",
-        status: .new,
-        referenceImagePath: nil,
+        testName: "DashboardTests.testEmptyState",
+        testTarget: "DifferUITests",
         failedImagePath: URL(fileURLWithPath: "/path/to/new.png"),
-        diffImagePath: nil,
-        testClass: "DashboardTests",
-        testMethod: "testEmptyState"
+        status: .new
     )
     
     static let missingTest = SnapshotTest(
-        id: "test-missing-1",
-        name: "OnboardingTests.testWelcomeScreen",
-        status: .missing,
+        testName: "OnboardingTests.testWelcomeScreen",
+        testTarget: "DifferUITests",
         referenceImagePath: URL(fileURLWithPath: "/path/to/missing_ref.png"),
-        failedImagePath: nil,
-        diffImagePath: nil,
-        testClass: "OnboardingTests",
-        testMethod: "testWelcomeScreen"
+        status: .missing
     )
     
     static let allTests = [
@@ -80,7 +64,7 @@ enum TestFixtures {
         failedTest,
         failedTest2,
         newTest,
-        missingTest,
+        missingTest
     ]
     
     static let failedTests = [failedTest, failedTest2]
@@ -89,21 +73,22 @@ enum TestFixtures {
     // MARK: - Mock DiffResult
     
     static let sampleDiffResult = DiffResult(
-        pixelDifferenceCount: 1234,
-        pixelDifferencePercentage: 12.5,
+        pixelDifferences: 1234,
+        percentDifference: 12.5,
         perceptualDifference: 8.3,
-        imageDimensions: CGSize(width: 375, height: 667),
-        algorithm: .pixelByPixel,
-        computationTime: 0.045
+        width: 375,
+        height: 667,
+        computationTime: 0.045,
+        algorithm: .pixelByPixel
     )
     
     // MARK: - Mock TestRun
     
     static let sampleTestRun = TestRun(
-        id: "run-1",
         xcresultPath: URL(fileURLWithPath: "/path/to/test.xcresult"),
         startDate: Date().addingTimeInterval(-300), // 5 minutes ago
         endDate: Date(),
-        tests: allTests
+        testResults: allTests,
+        status: .completedWithFailures
     )
 }

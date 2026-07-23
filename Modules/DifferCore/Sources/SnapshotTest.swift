@@ -2,13 +2,13 @@ import Foundation
 
 /// Represents the status of a snapshot test
 public enum TestStatus: String, Codable, CaseIterable {
-    case passed = "passed"
-    case failed = "failed"
-    case new = "new"              // No reference exists
-    case missing = "missing"       // Reference exists but no current
-    case unknown = "unknown"
+    case passed
+    case failed
+    case new              // No reference exists
+    case missing       // Reference exists but no current
+    case unknown
     
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .passed: return "Passed"
         case .failed: return "Failed"
@@ -18,7 +18,7 @@ public enum TestStatus: String, Codable, CaseIterable {
         }
     }
     
-    var iconName: String {
+    public var iconName: String {
         switch self {
         case .passed: return "checkmark.circle.fill"
         case .failed: return "xmark.circle.fill"

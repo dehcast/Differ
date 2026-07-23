@@ -66,10 +66,10 @@ public final class ImageComparisonService: ImageComparison {
             throw ImageComparisonError.dimensionMismatch
         }
         
-        let dimensions = (width: refRep.pixelsWide, height: refRep.pixelsHigh)
+        let dimensions = ImageDimensions(width: refRep.pixelsWide, height: refRep.pixelsHigh)
         
         // Perform comparison based on algorithm
-        let (pixelDiff, percentDiff, perceptualDiff) = try await performComparison(
+        let metrics = try await performComparison(
             reference: reference,
             current: current,
             algorithm: algorithm
@@ -78,9 +78,9 @@ public final class ImageComparisonService: ImageComparison {
         let computationTime = Date().timeIntervalSince(startTime)
         
         return DiffResult(
-            pixelDifferences: pixelDiff,
-            percentDifference: percentDiff,
-            perceptualDifference: perceptualDiff,
+            pixelDifferences: metrics.pixelDiff,
+            percentDifference: metrics.percentDiff,
+            perceptualDifference: metrics.perceptualDiff,
             dimensions: dimensions,
             computationTime: computationTime,
             algorithm: algorithm
@@ -101,11 +101,18 @@ public final class ImageComparisonService: ImageComparison {
     
     // MARK: - Private Methods
     
+    /// Result of an image comparison operation
+    private struct ComparisonMetrics {
+        let pixelDiff: Int
+        let percentDiff: Double
+        let perceptualDiff: Double?
+    }
+    
     private func performComparison(
         reference: NSImage,
         current: NSImage,
         algorithm: DiffAlgorithm
-    ) async throws -> (pixelDiff: Int, percentDiff: Double, perceptualDiff: Double?) {
+    ) async throws -> ComparisonMetrics {
         switch algorithm {
         case .pixelByPixel:
             return try await pixelByPixelComparison(reference: reference, current: current)
@@ -121,45 +128,45 @@ public final class ImageComparisonService: ImageComparison {
     private func pixelByPixelComparison(
         reference: NSImage,
         current: NSImage
-    ) async throws -> (pixelDiff: Int, percentDiff: Double, perceptualDiff: Double?) {
+    ) async throws -> ComparisonMetrics {
         // TODO: Implement pixel-by-pixel comparison
         // This will be implemented in Phase 1.2 (implement-pixel-diff task)
         
         // Placeholder implementation
-        return (pixelDiff: 0, percentDiff: 0.0, perceptualDiff: nil)
+        return ComparisonMetrics(pixelDiff: 0, percentDiff: 0.0, perceptualDiff: nil)
     }
     
     private func perceptualComparison(
         reference: NSImage,
         current: NSImage
-    ) async throws -> (pixelDiff: Int, percentDiff: Double, perceptualDiff: Double?) {
+    ) async throws -> ComparisonMetrics {
         // TODO: Implement perceptual (CIEDE2000) comparison
         // This will be implemented in Phase 1.2 (implement-perceptual-diff task)
         
         // Placeholder implementation
-        return (pixelDiff: 0, percentDiff: 0.0, perceptualDiff: 0.0)
+        return ComparisonMetrics(pixelDiff: 0, percentDiff: 0.0, perceptualDiff: 0.0)
     }
     
     private func structuralComparison(
         reference: NSImage,
         current: NSImage
-    ) async throws -> (pixelDiff: Int, percentDiff: Double, perceptualDiff: Double?) {
+    ) async throws -> ComparisonMetrics {
         // TODO: Implement SSIM-based structural comparison
         // This is a future enhancement
         
         // Placeholder implementation
-        return (pixelDiff: 0, percentDiff: 0.0, perceptualDiff: 0.0)
+        return ComparisonMetrics(pixelDiff: 0, percentDiff: 0.0, perceptualDiff: 0.0)
     }
     
     private func combinedComparison(
         reference: NSImage,
         current: NSImage
-    ) async throws -> (pixelDiff: Int, percentDiff: Double, perceptualDiff: Double?) {
+    ) async throws -> ComparisonMetrics {
         // TODO: Implement combined algorithm approach
         // This is a future enhancement
         
         // Placeholder implementation
-        return (pixelDiff: 0, percentDiff: 0.0, perceptualDiff: 0.0)
+        return ComparisonMetrics(pixelDiff: 0, percentDiff: 0.0, perceptualDiff: 0.0)
     }
 }
 
