@@ -96,7 +96,7 @@ public enum DiffAlgorithm: String, Codable, CaseIterable {
     case structural = "structural"      // SSIM-based
     case combined = "combined"          // Multiple algorithms
     
-    var displayName: String {
+    public var displayName: String {
         switch self {
         case .pixelByPixel: return "Pixel-by-Pixel"
         case .perceptual: return "Perceptual (CIEDE2000)"

@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a test execution run
-public struct TestRun: Identifiable, Codable {
+public struct TestRun: Identifiable, Codable, Equatable {
     public let id: UUID
     public let xcresultPath: URL?
     public let startDate: Date

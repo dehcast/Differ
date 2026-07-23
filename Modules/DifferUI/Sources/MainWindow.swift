@@ -3,11 +3,13 @@ import DifferCore
 import DifferServices
 
 /// Main window of the Differ app
-struct MainWindow: View {
+public struct MainWindow: View {
     @EnvironmentObject var appState: AppState
     @StateObject private var testListViewModel = TestListViewModel()
     
-    var body: some View {
+    public init() {}
+    
+    public var body: some View {
         NavigationSplitView {
             // Sidebar: Test list
             TestListView(viewModel: testListViewModel)
@@ -26,7 +28,7 @@ struct MainWindow: View {
         .toolbar {
             ToolbarView()
         }
-        .onChange(of: appState.currentTestRun) { _, newTestRun in
+        .onChange(of: appState.currentTestRun) { newTestRun in
             if let testRun = newTestRun {
                 testListViewModel.loadTests(from: testRun)
             }

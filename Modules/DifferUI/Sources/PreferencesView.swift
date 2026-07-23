@@ -2,8 +2,10 @@ import SwiftUI
 import DifferCore
 
 /// Preferences/Settings view
-struct PreferencesView: View {
-    var body: some View {
+public struct PreferencesView: View {
+    public init() {}
+    
+    public var body: some View {
         TabView {
             GeneralPreferencesView()
                 .tabItem {
