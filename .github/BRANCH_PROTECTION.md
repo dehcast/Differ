@@ -143,4 +143,4 @@ Administrators can:
 
 - [CONTRIBUTING.md](CONTRIBUTING.md) - Development workflow
 - [SWIFT_PROJECT.md](SWIFT_PROJECT.md) - Swift/SPM setup
-- [CI Workflow](../workflows/ci.yml) - CI configuration
+- [../workflows/ci.yml](workflows/ci.yml) - CI configuration

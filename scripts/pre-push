@@ -2,14 +2,18 @@
 # Pre-push hook for Differ project
 # Ensures tests pass before pushing
 
+# Ensure we're in the repo root
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+
 echo "🧪 Running tests before push..."
 
 # Run core module tests
-cd Modules/DifferCore
+cd Modules/DifferCore || exit 1
 swift test --parallel --quiet 2>&1 | tail -3
 
 TEST_EXIT=${PIPESTATUS[0]}
-cd ../..
+cd "$REPO_ROOT" || exit 1
 
 if [ $TEST_EXIT -ne 0 ]; then
   echo ""
@@ -17,7 +21,6 @@ if [ $TEST_EXIT -ne 0 ]; then
   echo ""
   echo "To see details: cd Modules/DifferCore && swift test"
   echo ""
-  echo "To bypass this check (not recommended): git push --no-verify"
   exit 1
 fi
 

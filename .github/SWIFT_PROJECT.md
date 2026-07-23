@@ -63,7 +63,7 @@ swift package generate-xcodeproj
 
 **Issue**: Git 2.53+ restricts SPM from accessing bare repositories (dependency cache).
 
-**Solution**: Already configured in CI. For local development, if you encounter errors:
+**Solution**: Set these environment variables if you encounter errors:
 
 ```bash
 export GIT_CONFIG_COUNT=1
@@ -79,6 +79,8 @@ export GIT_CONFIG_COUNT=1
 export GIT_CONFIG_KEY_0="safe.bareRepository"
 export GIT_CONFIG_VALUE_0="all"
 ```
+
+**Note**: This workaround may be needed on Git 2.53+ but is not currently required in CI.
 
 ### Xcode Version
 
@@ -271,7 +273,7 @@ swift test
    ```yaml
    excluded:
      - .build
-     - "**/. build"
+     - "**/.build"
      - Modules/**/.build
    ```
 

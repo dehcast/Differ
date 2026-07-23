@@ -2,7 +2,20 @@
 # Pre-commit hook for Differ project
 # Runs SwiftLint to catch style violations before commit
 
+# Ensure we're in the repo root
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT" || exit 1
+
 echo "🔍 Running SwiftLint..."
+
+# Check if SwiftLint is installed
+if ! command -v swiftlint &> /dev/null; then
+  echo ""
+  echo "❌ SwiftLint is not installed. Please install it:"
+  echo "   brew install swiftlint"
+  echo ""
+  exit 1
+fi
 
 # Run SwiftLint in strict mode
 swiftlint lint --strict --quiet
@@ -16,7 +29,6 @@ if [ $SWIFTLINT_EXIT -ne 0 ]; then
   echo "To see details: swiftlint lint"
   echo "To auto-fix some issues: swiftlint --fix"
   echo ""
-  echo "To bypass this check (not recommended): git commit --no-verify"
   exit 1
 fi
 

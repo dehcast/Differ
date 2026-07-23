@@ -34,7 +34,7 @@ Thank you for contributing to Differ! This document provides guidelines for deve
    swift package resolve
    ```
 
-4. Build the project:
+5. Build the project:
    ```bash
    swift build
    ```
