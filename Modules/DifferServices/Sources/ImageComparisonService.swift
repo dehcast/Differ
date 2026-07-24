@@ -2,8 +2,14 @@ import Foundation
 import AppKit
 import DifferCore
 
-/// Protocol for image comparison operations
-public protocol ImageComparison: Sendable {
+/// Protocol for image comparison operations.
+///
+/// This is `@MainActor`-isolated because it operates on `NSImage`/`NSColor`,
+/// which are AppKit main-thread-affine, non-`Sendable` types. Keeping the
+/// service on the main actor lets `@MainActor` callers (e.g. view models) pass
+/// images without crossing an actor boundary.
+@MainActor
+public protocol ImageComparison {
     /// Compare two images and return the difference result
     func compare(
         reference: NSImage,
@@ -16,10 +22,11 @@ public protocol ImageComparison: Sendable {
         reference: NSImage,
         current: NSImage,
         highlightColor: NSColor
-    ) async throws -> sending NSImage
+    ) async throws -> NSImage
 }
 
 /// Service for comparing images and generating diffs
+@MainActor
 public final class ImageComparisonService: ImageComparison {
     
     public init() {}
@@ -69,14 +76,12 @@ public final class ImageComparisonService: ImageComparison {
         reference: NSImage,
         current: NSImage,
         highlightColor: NSColor = .systemRed
-    ) async throws -> sending NSImage {
+    ) async throws -> NSImage {
         // TODO: Implement diff image generation
         // This will be implemented in Phase 1.2 (implement-pixel-diff task)
         
-        // Placeholder: return a fresh, empty image sized to match the input.
-        // A freshly constructed value is in its own isolation region, so it can
-        // be returned as `sending` across the actor boundary to the caller.
-        return NSImage(size: current.size)
+        // Placeholder: return current image for now
+        return current
     }
     
     // MARK: - Private Methods

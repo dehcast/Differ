@@ -4,6 +4,7 @@ import DifferCore
 import DifferServices
 
 /// Application-wide state
+@MainActor
 public class AppState: ObservableObject {
     // MARK: - Published Properties
     
@@ -53,7 +54,6 @@ public class AppState: ObservableObject {
     // MARK: - Methods
     
     /// Load a repository
-    @MainActor
     public func loadRepository(at url: URL) async {
         do {
             if let repo = try await gitService.detectRepository(at: url) {
@@ -65,7 +65,6 @@ public class AppState: ObservableObject {
     }
     
     /// Open and parse an xcresult bundle
-    @MainActor
     public func openXCResult(at url: URL) async {
         do {
             let testRun = try await xcresultParser.parse(xcresultPath: url)
