@@ -12,14 +12,13 @@ final class TestListViewModel: ObservableObject {
     @Published var statusFilter: TestStatus?
     
     @Published var isLoading = false
-    @Published var error: Error?
     
     private var cancellables = Set<AnyCancellable>()
     
     init() {
-        // Setup search filtering
+        // Recompute the filtered list whenever the query or status filter changes.
+        // Filtering is an in-memory operation, so no debounce is needed.
         Publishers.CombineLatest($searchText, $statusFilter)
-            .debounce(for: .milliseconds(300), scheduler: DispatchQueue.main)
             .sink { [weak self] searchText, statusFilter in
                 self?.filterTests(searchText: searchText, statusFilter: statusFilter)
             }

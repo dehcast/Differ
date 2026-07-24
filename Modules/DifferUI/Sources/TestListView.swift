@@ -93,7 +93,7 @@ struct StatusFilterView: View {
                             title: status.displayName,
                             count: count,
                             isSelected: selectedStatus == status,
-                            color: colorFor(status: status)
+                            color: status.color
                         ) {
                             selectedStatus = status == selectedStatus ? nil : status
                         }
@@ -102,16 +102,6 @@ struct StatusFilterView: View {
             }
             .padding(.horizontal, 8)
             .padding(.vertical, 8)
-        }
-    }
-    
-    private func colorFor(status: TestStatus) -> Color {
-        switch status {
-        case .passed: return .green
-        case .failed: return .red
-        case .new: return .blue
-        case .missing: return .orange
-        case .unknown: return .gray
         }
     }
 }
@@ -153,7 +143,7 @@ struct TestRowView: View {
     var body: some View {
         HStack {
             Image(systemName: test.status.iconName)
-                .foregroundColor(colorFor(status: test.status))
+                .foregroundColor(test.status.color)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(test.displayName)
@@ -173,16 +163,6 @@ struct TestRowView: View {
             }
         }
         .padding(.vertical, 4)
-    }
-    
-    private func colorFor(status: TestStatus) -> Color {
-        switch status {
-        case .passed: return .green
-        case .failed: return .red
-        case .new: return .blue
-        case .missing: return .orange
-        case .unknown: return .gray
-        }
     }
 }
 

@@ -2,8 +2,14 @@ import Foundation
 import AppKit
 import DifferCore
 
-/// Protocol for image comparison operations
-public protocol ImageComparison {
+/// Protocol for image comparison operations.
+///
+/// This is `@MainActor`-isolated because it operates on `NSImage`/`NSColor`,
+/// which are AppKit main-thread-affine, non-`Sendable` types. Keeping the
+/// service on the main actor lets `@MainActor` callers (e.g. view models) pass
+/// images without crossing an actor boundary.
+@MainActor
+public protocol ImageComparison: Sendable {
     /// Compare two images and return the difference result
     func compare(
         reference: NSImage,
@@ -20,31 +26,10 @@ public protocol ImageComparison {
 }
 
 /// Service for comparing images and generating diffs
+@MainActor
 public final class ImageComparisonService: ImageComparison {
     
-    // MARK: - Configuration
-    
-    public struct Configuration {
-        public var highlightColor: NSColor
-        public var tolerance: Double
-        public var useGPU: Bool
-        
-        public init(
-            highlightColor: NSColor = .systemRed,
-            tolerance: Double = 0.01,
-            useGPU: Bool = true
-        ) {
-            self.highlightColor = highlightColor
-            self.tolerance = tolerance
-            self.useGPU = useGPU
-        }
-    }
-    
-    private let configuration: Configuration
-    
-    public init(configuration: Configuration = Configuration()) {
-        self.configuration = configuration
-    }
+    public init() {}
     
     // MARK: - Public API
     

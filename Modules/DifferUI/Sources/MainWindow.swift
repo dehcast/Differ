@@ -4,10 +4,18 @@ import DifferServices
 
 /// Main window of the Differ app
 public struct MainWindow: View {
-    @EnvironmentObject var appState: AppState
     @StateObject private var testListViewModel = TestListViewModel()
     
-    public init() {}
+    let imageComparisonService: ImageComparisonService
+    @Binding var currentTestRun: TestRun?
+    
+    public init(
+        imageComparisonService: ImageComparisonService,
+        currentTestRun: Binding<TestRun?>
+    ) {
+        self.imageComparisonService = imageComparisonService
+        self._currentTestRun = currentTestRun
+    }
     
     public var body: some View {
         NavigationSplitView {
@@ -19,7 +27,7 @@ public struct MainWindow: View {
             if let test = testListViewModel.selectedTest {
                 DiffView(
                     snapshotTest: test,
-                    imageComparisonService: appState.imageComparisonService
+                    imageComparisonService: imageComparisonService
                 )
             } else {
                 EmptyStateView()
@@ -28,7 +36,7 @@ public struct MainWindow: View {
         .toolbar {
             ToolbarView()
         }
-        .onChange(of: appState.currentTestRun) { newTestRun in
+        .onChange(of: currentTestRun) { newTestRun in
             if let testRun = newTestRun {
                 testListViewModel.loadTests(from: testRun)
             }
@@ -93,7 +101,9 @@ struct ToolbarView: View {
 }
 
 #Preview {
-    MainWindow()
-        .environmentObject(AppState())
-        .frame(width: 1200, height: 800)
+    MainWindow(
+        imageComparisonService: ImageComparisonService(),
+        currentTestRun: .constant(nil)
+    )
+    .frame(width: 1200, height: 800)
 }

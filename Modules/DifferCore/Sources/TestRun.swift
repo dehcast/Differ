@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a test execution run
-public struct TestRun: Identifiable, Codable, Equatable {
+public struct TestRun: Identifiable, Codable, Equatable, Sendable {
     public let id: UUID
     public let xcresultPath: URL?
     public let startDate: Date
@@ -69,34 +69,15 @@ public struct TestRun: Identifiable, Codable, Equatable {
 }
 
 /// Status of a test run
-public enum RunStatus: String, Codable, CaseIterable {
+public enum RunStatus: String, Codable, CaseIterable, Sendable {
     case running = "running"
     case completed = "completed"
     case completedWithFailures = "completed_with_failures"
     case failed = "failed"
     case cancelled = "cancelled"
     
-    var displayName: String {
-        switch self {
-        case .running: return "Running"
-        case .completed: return "Completed"
-        case .completedWithFailures: return "Completed with Failures"
-        case .failed: return "Failed"
-        case .cancelled: return "Cancelled"
-        }
-    }
-    
-    var iconName: String {
-        switch self {
-        case .running: return "arrow.clockwise.circle.fill"
-        case .completed: return "checkmark.circle.fill"
-        case .completedWithFailures: return "exclamationmark.triangle.fill"
-        case .failed: return "xmark.circle.fill"
-        case .cancelled: return "stop.circle.fill"
-        }
-    }
-    
-    var isComplete: Bool {
+    /// Whether the run has finished (domain logic, not presentation).
+    public var isComplete: Bool {
         self != .running
     }
 }

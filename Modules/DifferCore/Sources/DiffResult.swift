@@ -1,7 +1,7 @@
 import Foundation
 
 /// Image dimensions
-public struct ImageDimensions: Codable, Hashable {
+public struct ImageDimensions: Codable, Hashable, Sendable {
     public let width: Int
     public let height: Int
     
@@ -12,7 +12,7 @@ public struct ImageDimensions: Codable, Hashable {
 }
 
 /// Represents the result of comparing two images
-public struct DiffResult: Codable, Hashable {
+public struct DiffResult: Codable, Hashable, Sendable {
     /// Number of pixels that are different
     public let pixelDifferences: Int
     
@@ -22,7 +22,8 @@ public struct DiffResult: Codable, Hashable {
     /// Path to the generated diff image (if saved)
     public var diffImagePath: URL?
     
-    /// Perceptual difference score (0.0 - 1.0) using CIEDE2000 or similar
+    /// Perceptual difference score computed via CIEDE2000 or similar.
+    /// Expressed on the same percentage scale as `percentDifference`.
     public var perceptualDifference: Double?
     
     /// Image dimensions
@@ -52,7 +53,7 @@ public struct DiffResult: Codable, Hashable {
         self.algorithm = algorithm
     }
     
-    /// Convenience initializer with tuple dimensions (for backwards compatibility)
+    /// Convenience initializer taking width/height directly instead of `ImageDimensions`.
     public init(
         pixelDifferences: Int,
         percentDifference: Double,
@@ -90,18 +91,9 @@ public struct DiffResult: Codable, Hashable {
 }
 
 /// Algorithm used for image comparison
-public enum DiffAlgorithm: String, Codable, CaseIterable {
+public enum DiffAlgorithm: String, Codable, CaseIterable, Sendable {
     case pixelByPixel = "pixel_by_pixel"
     case perceptual = "perceptual"      // CIEDE2000
     case structural = "structural"      // SSIM-based
     case combined = "combined"          // Multiple algorithms
-    
-    public var displayName: String {
-        switch self {
-        case .pixelByPixel: return "Pixel-by-Pixel"
-        case .perceptual: return "Perceptual (CIEDE2000)"
-        case .structural: return "Structural (SSIM)"
-        case .combined: return "Combined"
-        }
-    }
 }
