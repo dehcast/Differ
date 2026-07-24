@@ -48,29 +48,36 @@ public final class ImageComparisonService: ImageComparison {
         algorithm: DiffAlgorithm = .pixelByPixel
     ) async throws -> DiffResult {
         let startTime = Date()
-        
-        // Validate dimensions
-        guard let refRep = reference.representations.first,
-              let curRep = current.representations.first else {
-            throw ImageComparisonError.invalidImage
-        }
-        
-        guard refRep.pixelsWide == curRep.pixelsWide &&
-              refRep.pixelsHigh == curRep.pixelsHigh else {
+
+        // Extract pixels at each image's authoritative CGImage dimensions (rather than
+        // trusting `representations.first`, which may not be the representation that
+        // `cgImage(forProposedRect:)` actually renders).
+        let refBuffer = try pixelBuffer(from: reference)
+        let curBuffer = try pixelBuffer(from: current)
+
+        guard refBuffer.width == curBuffer.width,
+              refBuffer.height == curBuffer.height else {
             throw ImageComparisonError.dimensionMismatch
         }
-        
-        let dimensions = ImageDimensions(width: refRep.pixelsWide, height: refRep.pixelsHigh)
-        
-        // Perform comparison based on algorithm
-        let metrics = try await performComparison(
-            reference: reference,
-            current: current,
-            algorithm: algorithm
-        )
-        
+
+        let dimensions = ImageDimensions(width: refBuffer.width, height: refBuffer.height)
+
+        // Perform comparison based on algorithm. Only pixel-by-pixel is implemented; the
+        // other algorithms remain stubs and ignore their inputs.
+        let metrics: ComparisonMetrics
+        switch algorithm {
+        case .pixelByPixel:
+            metrics = pixelByPixelMetrics(reference: refBuffer, current: curBuffer)
+        case .perceptual:
+            metrics = try await perceptualComparison(reference: reference, current: current)
+        case .structural:
+            metrics = try await structuralComparison(reference: reference, current: current)
+        case .combined:
+            metrics = try await combinedComparison(reference: reference, current: current)
+        }
+
         let computationTime = Date().timeIntervalSince(startTime)
-        
+
         return DiffResult(
             pixelDifferences: metrics.pixelDiff,
             percentDifference: metrics.percentDiff,
@@ -86,20 +93,14 @@ public final class ImageComparisonService: ImageComparison {
         current: NSImage,
         highlightColor: NSColor = .systemRed
     ) async throws -> NSImage {
-        // Use the reference image as the canvas. The current image is drawn into a
-        // reference-sized bitmap so mismatched dimensions are handled gracefully by
-        // resampling rather than throwing (this method is used purely for display).
-        guard let refRep = reference.representations.first else {
-            throw ImageComparisonError.invalidImage
-        }
-        let width = refRep.pixelsWide
-        let height = refRep.pixelsHigh
+        // Use the reference image as the canvas, sized to its native CGImage dimensions.
+        // The current image is resampled to that size so mismatched dimensions are handled
+        // gracefully rather than throwing (this method is used purely for display).
+        let refBuffer = try pixelBuffer(from: reference)
+        let width = refBuffer.width
+        let height = refBuffer.height
 
-        guard width > 0, height > 0 else {
-            throw ImageComparisonError.invalidImage
-        }
-
-        let refBytes = try rgbaBytes(from: reference, width: width, height: height)
+        let refBytes = refBuffer.bytes
         let curBytes = try rgbaBytes(from: current, width: width, height: height)
 
         // Resolve the highlight color into sRGB 0-255 components. Extended-sRGB or
@@ -140,51 +141,18 @@ public final class ImageComparisonService: ImageComparison {
         let perceptualDiff: Double?
     }
     
-    private func performComparison(
-        reference: NSImage,
-        current: NSImage,
-        algorithm: DiffAlgorithm
-    ) async throws -> ComparisonMetrics {
-        switch algorithm {
-        case .pixelByPixel:
-            return try await pixelByPixelComparison(reference: reference, current: current)
-        case .perceptual:
-            return try await perceptualComparison(reference: reference, current: current)
-        case .structural:
-            return try await structuralComparison(reference: reference, current: current)
-        case .combined:
-            return try await combinedComparison(reference: reference, current: current)
-        }
-    }
-    
-    private func pixelByPixelComparison(
-        reference: NSImage,
-        current: NSImage
-    ) async throws -> ComparisonMetrics {
-        // `compare` already guarantees matching dimensions before we get here, but we
-        // re-derive them defensively so this method is safe if called directly.
-        guard let refRep = reference.representations.first,
-              let curRep = current.representations.first else {
-            throw ImageComparisonError.invalidImage
-        }
-
-        guard refRep.pixelsWide == curRep.pixelsWide,
-              refRep.pixelsHigh == curRep.pixelsHigh else {
-            throw ImageComparisonError.dimensionMismatch
-        }
-
-        let width = refRep.pixelsWide
-        let height = refRep.pixelsHigh
-        let totalPixels = width * height
-
-        // A zero-area image isn't a meaningful comparison; treat it as invalid rather
-        // than silently reporting 0% difference (which would read as "identical").
+    /// Pixel-by-pixel comparison over two already-normalized, equally-sized buffers.
+    private func pixelByPixelMetrics(
+        reference: PixelBuffer,
+        current: PixelBuffer
+    ) -> ComparisonMetrics {
+        let totalPixels = reference.width * reference.height
         guard totalPixels > 0 else {
-            throw ImageComparisonError.invalidImage
+            return ComparisonMetrics(pixelDiff: 0, percentDiff: 0.0, perceptualDiff: nil)
         }
 
-        let refBytes = try rgbaBytes(from: reference, width: width, height: height)
-        let curBytes = try rgbaBytes(from: current, width: width, height: height)
+        let refBytes = reference.bytes
+        let curBytes = current.bytes
 
         // Per-channel tolerance expressed in 0-255 space. Two pixels are considered
         // different when their largest channel delta (incl. alpha) exceeds the tolerance.
@@ -278,16 +246,50 @@ public final class ImageComparisonService: ImageComparison {
     private static let rgbaBitmapInfo: UInt32 =
         CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
 
-    /// Renders an `NSImage` into a normalized RGBA8 pixel buffer of the requested size.
-    /// The buffer is 8 bits per channel, RGBA byte order with premultiplied alpha
-    /// (`premultipliedLast`), in an explicit sRGB color space. Normalizing both inputs
-    /// into the same pixel format, color space, and geometry makes the byte-for-byte
-    /// comparison meaningful and deterministic regardless of the source representation.
-    private func rgbaBytes(from image: NSImage, width: Int, height: Int) throws -> [UInt8] {
+    /// A normalized RGBA8 pixel buffer with its own dimensions.
+    private struct PixelBuffer {
+        let bytes: [UInt8]
+        let width: Int
+        let height: Int
+    }
+
+    /// Extracts pixels at the image's authoritative CGImage dimensions. Using the
+    /// extracted `CGImage`'s `width`/`height` (rather than `representations.first`) avoids
+    /// wrong sizing or false `invalidImage` for multi-representation or vector images.
+    private func pixelBuffer(from image: NSImage) throws -> PixelBuffer {
         guard let cgImage = cgImage(from: image) else {
             throw ImageComparisonError.invalidImage
         }
 
+        let width = cgImage.width
+        let height = cgImage.height
+
+        // A zero-area image isn't a meaningful comparison; treat it as invalid rather
+        // than silently reporting 0% difference (which would read as "identical").
+        guard width > 0, height > 0 else {
+            throw ImageComparisonError.invalidImage
+        }
+
+        let bytes = try rasterize(cgImage, width: width, height: height)
+        return PixelBuffer(bytes: bytes, width: width, height: height)
+    }
+
+    /// Renders an `NSImage` into a normalized RGBA8 pixel buffer of the requested size,
+    /// resampling if the source dimensions differ. Used when a specific canvas size is
+    /// required (e.g. drawing the current image onto the reference-sized diff canvas).
+    private func rgbaBytes(from image: NSImage, width: Int, height: Int) throws -> [UInt8] {
+        guard let cgImage = cgImage(from: image) else {
+            throw ImageComparisonError.invalidImage
+        }
+        return try rasterize(cgImage, width: width, height: height)
+    }
+
+    /// Draws a `CGImage` into a normalized RGBA8 bitmap of the requested size. The buffer is
+    /// 8 bits per channel, RGBA byte order with premultiplied alpha, in an explicit sRGB
+    /// color space. Normalizing both inputs into the same pixel format, color space, and
+    /// geometry makes the byte-for-byte comparison meaningful and deterministic regardless
+    /// of the source representation.
+    private func rasterize(_ cgImage: CGImage, width: Int, height: Int) throws -> [UInt8] {
         let bytesPerPixel = 4
         let bytesPerRow = width * bytesPerPixel
         let colorSpace = Self.workingColorSpace
