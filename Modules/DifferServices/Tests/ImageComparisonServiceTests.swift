@@ -163,6 +163,42 @@ final class ImageComparisonServiceTests: XCTestCase {
         }
     }
 
+    func testEmptyImageThrowsInvalidImage() async throws {
+        let service = ImageComparisonService()
+        // An NSImage with no bitmap representation yields no comparable pixels and must
+        // be rejected rather than reported as a successful (identical) comparison.
+        let empty = NSImage(size: NSSize(width: 0, height: 0))
+
+        do {
+            _ = try await service.compare(
+                reference: empty,
+                current: empty,
+                algorithm: .pixelByPixel
+            )
+            XCTFail("Expected invalidImage to be thrown for an empty image")
+        } catch let error as ImageComparisonError {
+            guard case .invalidImage = error else {
+                return XCTFail("Expected invalidImage, got \(error)")
+            }
+        }
+    }
+
+    func testNegativeToleranceIsClampedToStrictComparison() async throws {
+        // A negative tolerance must not make every pixel "different"; it should clamp to 0
+        // and behave like an exact comparison, so identical images still report 0% diff.
+        let service = ImageComparisonService(tolerance: -1.0)
+        let reference = solidImage(width: 8, height: 8, color: RGB(120, 130, 140))
+        let current = solidImage(width: 8, height: 8, color: RGB(120, 130, 140))
+
+        let result = try await service.compare(
+            reference: reference,
+            current: current,
+            algorithm: .pixelByPixel
+        )
+
+        XCTAssertEqual(result.pixelDifferences, 0)
+    }
+
     // MARK: - Diff Image
 
     func testGenerateDiffImageHighlightsChangedPixels() async throws {

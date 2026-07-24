@@ -35,9 +35,9 @@ public final class ImageComparisonService: ImageComparison {
 
     /// - Parameter tolerance: Per-channel color tolerance (0.0-1.0). Two pixels are
     ///   treated as different when their largest channel delta exceeds this fraction of
-    ///   the 0-255 range. Defaults to 0.01 (≈2.55 levels).
+    ///   the 0-255 range. Defaults to 0.01 (≈2.55 levels). Values are clamped to 0.0...1.0.
     public init(tolerance: Double = 0.01) {
-        self.tolerance = tolerance
+        self.tolerance = min(max(tolerance, 0.0), 1.0)
     }
 
     // MARK: - Public API
@@ -177,8 +177,10 @@ public final class ImageComparisonService: ImageComparison {
         let height = refRep.pixelsHigh
         let totalPixels = width * height
 
+        // A zero-area image isn't a meaningful comparison; treat it as invalid rather
+        // than silently reporting 0% difference (which would read as "identical").
         guard totalPixels > 0 else {
-            return ComparisonMetrics(pixelDiff: 0, percentDiff: 0.0, perceptualDiff: nil)
+            throw ImageComparisonError.invalidImage
         }
 
         let refBytes = try rgbaBytes(from: reference, width: width, height: height)
@@ -263,11 +265,17 @@ public final class ImageComparisonService: ImageComparison {
         return image.cgImage(forProposedRect: &rect, context: nil, hints: nil)
     }
 
+    /// Explicit sRGB color space used for all pixel normalization. Using a fixed,
+    /// device-independent color space (rather than `CGColorSpaceCreateDeviceRGB()`) keeps
+    /// comparisons deterministic across displays and machines.
+    private static let workingColorSpace: CGColorSpace =
+        CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
+
     /// Renders an `NSImage` into a normalized RGBA8 pixel buffer of the requested size.
     /// The buffer is 8 bits per channel, RGBA byte order with premultiplied alpha
-    /// (`premultipliedLast`), in the device RGB color space. Normalizing both inputs into
-    /// the same pixel format and geometry makes the byte-for-byte comparison meaningful
-    /// regardless of the source representation.
+    /// (`premultipliedLast`), in an explicit sRGB color space. Normalizing both inputs
+    /// into the same pixel format, color space, and geometry makes the byte-for-byte
+    /// comparison meaningful and deterministic regardless of the source representation.
     private func rgbaBytes(from image: NSImage, width: Int, height: Int) throws -> [UInt8] {
         guard let cgImage = cgImage(from: image) else {
             throw ImageComparisonError.invalidImage
@@ -275,7 +283,7 @@ public final class ImageComparisonService: ImageComparison {
 
         let bytesPerPixel = 4
         let bytesPerRow = width * bytesPerPixel
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let colorSpace = Self.workingColorSpace
         let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
 
         guard let context = CGContext(
@@ -306,7 +314,7 @@ public final class ImageComparisonService: ImageComparison {
     private func makeImage(from bytes: [UInt8], width: Int, height: Int) -> NSImage? {
         let bytesPerPixel = 4
         let bytesPerRow = width * bytesPerPixel
-        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let colorSpace = Self.workingColorSpace
         let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
 
         guard let provider = CGDataProvider(data: Data(bytes) as CFData) else {
