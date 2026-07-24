@@ -120,6 +120,30 @@ final class ImageComparisonServiceTests: XCTestCase {
         XCTAssertEqual(result.percentDifference, 4.0, accuracy: 0.0001)
     }
 
+    func testConfigurableToleranceIgnoresSmallDifferences() async throws {
+        // A small per-channel difference (10/255 ≈ 0.039) should count as different with
+        // the default tolerance, but be ignored when the service is configured with a
+        // larger tolerance.
+        let reference = solidImage(width: 8, height: 8, color: RGB(100, 100, 100))
+        let current = solidImage(width: 8, height: 8, color: RGB(110, 110, 110))
+
+        let strict = ImageComparisonService()
+        let strictResult = try await strict.compare(
+            reference: reference,
+            current: current,
+            algorithm: .pixelByPixel
+        )
+        XCTAssertEqual(strictResult.pixelDifferences, 64)
+
+        let lenient = ImageComparisonService(tolerance: 0.1)
+        let lenientResult = try await lenient.compare(
+            reference: reference,
+            current: current,
+            algorithm: .pixelByPixel
+        )
+        XCTAssertEqual(lenientResult.pixelDifferences, 0)
+    }
+
     func testMismatchedDimensionsThrows() async throws {
         let service = ImageComparisonService()
         let reference = solidImage(width: 16, height: 16, color: RGB(10, 20, 30))
@@ -167,7 +191,9 @@ final class ImageComparisonServiceTests: XCTestCase {
         // A changed pixel should no longer be pure white (it is blended toward red),
         // while an unchanged pixel should remain white. Sample using the bitmap's own
         // pixel dimensions so this is independent of any backing-scale factor.
-        let bitmap = try XCTUnwrap(NSBitmapImageRep(data: diffImage.tiffRepresentation ?? Data()))
+        let tiffData = try XCTUnwrap(diffImage.tiffRepresentation,
+                                     "Diff image should provide a TIFF representation")
+        let bitmap = try XCTUnwrap(NSBitmapImageRep(data: tiffData))
         let changed = try XCTUnwrap(bitmap.colorAt(x: 0, y: 0))
         let unchanged = try XCTUnwrap(bitmap.colorAt(x: bitmap.pixelsWide - 1, y: bitmap.pixelsHigh - 1))
 

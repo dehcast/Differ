@@ -29,11 +29,16 @@ public protocol ImageComparison: Sendable {
 @MainActor
 public final class ImageComparisonService: ImageComparison {
     
-    public init() {}
-
     /// Per-channel color tolerance (0.0-1.0) below which pixels are considered equal.
     /// Expressed as a fraction of the 0-255 channel range.
-    private static let defaultTolerance: Double = 0.01
+    private let tolerance: Double
+
+    /// - Parameter tolerance: Per-channel color tolerance (0.0-1.0). Two pixels are
+    ///   treated as different when their largest channel delta exceeds this fraction of
+    ///   the 0-255 range. Defaults to 0.01 (≈2.55 levels).
+    public init(tolerance: Double = 0.01) {
+        self.tolerance = tolerance
+    }
 
     // MARK: - Public API
     
@@ -97,14 +102,15 @@ public final class ImageComparisonService: ImageComparison {
         let refBytes = try rgbaBytes(from: reference, width: width, height: height)
         let curBytes = try rgbaBytes(from: current, width: width, height: height)
 
-        // Resolve the highlight color into sRGB 0-255 components.
+        // Resolve the highlight color into sRGB 0-255 components. Extended-sRGB or
+        // pattern colors can produce components outside 0…1, so clamp before converting.
         let color = highlightColor.usingColorSpace(.sRGB) ?? highlightColor
-        let hr = UInt8((color.redComponent * 255.0).rounded())
-        let hg = UInt8((color.greenComponent * 255.0).rounded())
-        let hb = UInt8((color.blueComponent * 255.0).rounded())
+        let hr = channelByte(color.redComponent)
+        let hg = channelByte(color.greenComponent)
+        let hb = channelByte(color.blueComponent)
         let overlayAlpha = 0.55
 
-        let threshold = Self.defaultTolerance * 255.0
+        let threshold = tolerance * 255.0
         var out = refBytes
 
         for pixel in 0..<(width * height) {
@@ -114,7 +120,8 @@ public final class ImageComparisonService: ImageComparison {
                 out[idx] = blend(refBytes[idx], hr, overlayAlpha)
                 out[idx + 1] = blend(refBytes[idx + 1], hg, overlayAlpha)
                 out[idx + 2] = blend(refBytes[idx + 2], hb, overlayAlpha)
-                out[idx + 3] = 255
+                // Preserve the reference pixel's alpha (out is a copy of refBytes) so the
+                // diff image keeps the original transparency instead of forcing opacity.
             }
         }
 
@@ -179,7 +186,7 @@ public final class ImageComparisonService: ImageComparison {
 
         // Per-channel tolerance expressed in 0-255 space. Two pixels are considered
         // different when their largest channel delta (incl. alpha) exceeds the tolerance.
-        let threshold = Self.defaultTolerance * 255.0
+        let threshold = tolerance * 255.0
 
         var diffCount = 0
         for pixel in 0..<totalPixels {
@@ -243,15 +250,24 @@ public final class ImageComparisonService: ImageComparison {
         return UInt8(max(0.0, min(255.0, value.rounded())))
     }
 
+    /// Converts a 0.0-1.0 color component to a 0-255 byte, clamping out-of-range values
+    /// (extended-sRGB / pattern colors can report components below 0 or above 1).
+    private func channelByte(_ component: CGFloat) -> UInt8 {
+        let scaled = (Double(component) * 255.0).rounded()
+        return UInt8(max(0.0, min(255.0, scaled)))
+    }
+
     /// Extracts the underlying `CGImage` for an `NSImage`.
     private func cgImage(from image: NSImage) -> CGImage? {
         var rect = CGRect(origin: .zero, size: image.size)
         return image.cgImage(forProposedRect: &rect, context: nil, hints: nil)
     }
 
-    /// Renders an `NSImage` into a normalized, non-premultiplied-free RGBA8 buffer of the
-    /// requested size. Normalizing both inputs into the same colorspace and geometry makes
-    /// the byte-for-byte comparison meaningful regardless of the source representation.
+    /// Renders an `NSImage` into a normalized RGBA8 pixel buffer of the requested size.
+    /// The buffer is 8 bits per channel, RGBA byte order with premultiplied alpha
+    /// (`premultipliedLast`), in the device RGB color space. Normalizing both inputs into
+    /// the same pixel format and geometry makes the byte-for-byte comparison meaningful
+    /// regardless of the source representation.
     private func rgbaBytes(from image: NSImage, width: Int, height: Int) throws -> [UInt8] {
         guard let cgImage = cgImage(from: image) else {
             throw ImageComparisonError.invalidImage
