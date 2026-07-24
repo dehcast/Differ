@@ -63,7 +63,7 @@ public final class ImageComparisonService: ImageComparison {
         let dimensions = ImageDimensions(width: refBuffer.width, height: refBuffer.height)
 
         // Perform comparison based on algorithm. Only pixel-by-pixel is implemented; the
-        // other algorithms remain stubs and ignore their inputs.
+        // other algorithms remain stubs and currently return placeholder metrics.
         let metrics: ComparisonMetrics
         switch algorithm {
         case .pixelByPixel:
