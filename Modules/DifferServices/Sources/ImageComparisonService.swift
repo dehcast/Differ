@@ -30,6 +30,11 @@ public protocol ImageComparison: Sendable {
 public final class ImageComparisonService: ImageComparison {
     
     public init() {}
+
+    /// Per-channel color tolerance (0.0-1.0) below which pixels are considered equal.
+    /// Expressed as a fraction of the 0-255 channel range.
+    private static let defaultTolerance: Double = 0.01
+
     
     // MARK: - Public API
     
@@ -100,7 +105,7 @@ public final class ImageComparisonService: ImageComparison {
         let hb = UInt8((color.blueComponent * 255.0).rounded())
         let overlayAlpha = 0.55
 
-        let threshold = configuration.tolerance * 255.0
+        let threshold = Self.defaultTolerance * 255.0
         var out = refBytes
 
         for pixel in 0..<(width * height) {
@@ -175,7 +180,7 @@ public final class ImageComparisonService: ImageComparison {
 
         // Per-channel tolerance expressed in 0-255 space. Two pixels are considered
         // different when their largest channel delta (incl. alpha) exceeds the tolerance.
-        let threshold = configuration.tolerance * 255.0
+        let threshold = Self.defaultTolerance * 255.0
 
         var diffCount = 0
         for pixel in 0..<totalPixels {

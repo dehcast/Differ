@@ -3,6 +3,7 @@ import AppKit
 @testable import DifferServices
 import DifferCore
 
+@MainActor
 final class ImageComparisonServiceTests: XCTestCase {
 
     // MARK: - Helpers
