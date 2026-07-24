@@ -4,6 +4,7 @@ import DifferCore
 import DifferServices
 
 /// Application-wide state
+@MainActor
 public class AppState: ObservableObject {
     // MARK: - Published Properties
     
@@ -18,6 +19,9 @@ public class AppState: ObservableObject {
     
     /// Whether a test is currently running
     @Published public var isRunningTests: Bool = false
+    
+    /// User-facing message describing the most recent failure, if any
+    @Published public var errorMessage: String?
     
     // MARK: - Services
     
@@ -50,27 +54,23 @@ public class AppState: ObservableObject {
     // MARK: - Methods
     
     /// Load a repository
-    @MainActor
     public func loadRepository(at url: URL) async {
         do {
             if let repo = try await gitService.detectRepository(at: url) {
                 self.currentRepository = repo
             }
         } catch {
-            // TODO: Implement proper error handling with logging framework
-            // Error: Failed to load repository
+            self.errorMessage = "Failed to load repository: \(error.localizedDescription)"
         }
     }
     
     /// Open and parse an xcresult bundle
-    @MainActor
     public func openXCResult(at url: URL) async {
         do {
             let testRun = try await xcresultParser.parse(xcresultPath: url)
             self.currentTestRun = testRun
         } catch {
-            // TODO: Implement proper error handling with logging framework
-            // Error: Failed to parse XCResult
+            self.errorMessage = "Failed to open XCResult: \(error.localizedDescription)"
         }
     }
 }

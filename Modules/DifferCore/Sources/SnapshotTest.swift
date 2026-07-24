@@ -1,36 +1,16 @@
 import Foundation
 
 /// Represents the status of a snapshot test
-public enum TestStatus: String, Codable, CaseIterable {
+public enum TestStatus: String, Codable, CaseIterable, Sendable {
     case passed
     case failed
     case new              // No reference exists
     case missing       // Reference exists but no current
     case unknown
-    
-    public var displayName: String {
-        switch self {
-        case .passed: return "Passed"
-        case .failed: return "Failed"
-        case .new: return "New Snapshot"
-        case .missing: return "Missing"
-        case .unknown: return "Unknown"
-        }
-    }
-    
-    public var iconName: String {
-        switch self {
-        case .passed: return "checkmark.circle.fill"
-        case .failed: return "xmark.circle.fill"
-        case .new: return "plus.circle.fill"
-        case .missing: return "questionmark.circle.fill"
-        case .unknown: return "circle"
-        }
-    }
 }
 
 /// Represents a single snapshot test with its associated images
-public struct SnapshotTest: Identifiable, Codable, Hashable {
+public struct SnapshotTest: Identifiable, Codable, Hashable, Sendable {
     public let id: UUID
     public let testName: String              // e.g., "MyViewControllerTests.testAppearance"
     public let testTarget: String            // e.g., "MyAppTests"

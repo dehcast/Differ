@@ -1,7 +1,7 @@
 import Foundation
 
 /// Represents a git repository
-public struct Repository: Identifiable, Codable {
+public struct Repository: Identifiable, Codable, Sendable {
     public let id: UUID
     public let path: URL
     public let name: String
@@ -29,30 +29,16 @@ public struct Repository: Identifiable, Codable {
         self.snapshotDirectories = snapshotDirectories
         self.frameworkType = frameworkType
     }
-    
-    /// Returns true if this is a valid git repository
-    public var isValidGitRepo: Bool {
-        let gitPath = path.appendingPathComponent(".git")
-        return FileManager.default.fileExists(atPath: gitPath.path)
-    }
 }
 
 /// Supported snapshot testing frameworks
-public enum SnapshotFramework: String, Codable, CaseIterable {
+public enum SnapshotFramework: String, Codable, CaseIterable, Sendable {
     case fbSnapshotTestCase = "fb_snapshot_test_case"     // iOSSnapshotTestCase
     case snapshotTesting = "snapshot_testing"             // PointFree's SnapshotTesting
     case custom = "custom"                                // Custom setup
     
-    var displayName: String {
-        switch self {
-        case .fbSnapshotTestCase: return "FBSnapshotTestCase"
-        case .snapshotTesting: return "SnapshotTesting"
-        case .custom: return "Custom"
-        }
-    }
-    
     /// Default snapshot directory name for this framework
-    var defaultDirectoryName: String {
+    public var defaultDirectoryName: String {
         switch self {
         case .fbSnapshotTestCase:
             return "ReferenceImages"
@@ -64,7 +50,7 @@ public enum SnapshotFramework: String, Codable, CaseIterable {
     }
     
     /// Naming pattern for reference images
-    var namingPattern: String {
+    public var namingPattern: String {
         switch self {
         case .fbSnapshotTestCase:
             return "TestClass/testMethod_*.png"
@@ -77,7 +63,7 @@ public enum SnapshotFramework: String, Codable, CaseIterable {
 }
 
 /// Represents a git commit
-public struct GitCommit: Identifiable, Codable {
+public struct GitCommit: Identifiable, Codable, Sendable {
     public let id: String  // SHA
     public let message: String
     public let author: String
@@ -94,7 +80,7 @@ public struct GitCommit: Identifiable, Codable {
 }
 
 /// Represents a file change in git
-public struct GitFileChange: Identifiable, Codable {
+public struct GitFileChange: Identifiable, Codable, Sendable {
     public let id: UUID
     public let filePath: String
     public let changeType: ChangeType
@@ -115,19 +101,10 @@ public struct GitFileChange: Identifiable, Codable {
         self.deletions = deletions
     }
     
-    public enum ChangeType: String, Codable {
+    public enum ChangeType: String, Codable, Sendable {
         case added
         case modified
         case deleted
         case renamed
-        
-        var iconName: String {
-            switch self {
-            case .added: return "plus.circle.fill"
-            case .modified: return "pencil.circle.fill"
-            case .deleted: return "minus.circle.fill"
-            case .renamed: return "arrow.right.circle.fill"
-            }
-        }
     }
 }

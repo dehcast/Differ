@@ -29,6 +29,10 @@ struct DiffView: View {
             if viewModel.isLoading {
                 ProgressView("Loading images...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if let error = viewModel.error {
+                DiffErrorView(error: error) {
+                    Task { await viewModel.loadImages() }
+                }
             } else if viewModel.showOverlay {
                 OverlayComparisonView(
                     referenceImage: viewModel.referenceImage,
@@ -53,6 +57,32 @@ struct DiffView: View {
         .task {
             await viewModel.loadImages()
         }
+    }
+}
+
+/// Error state shown when images fail to load or diff
+struct DiffErrorView: View {
+    let error: Error
+    let retry: () -> Void
+    
+    var body: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 48))
+                .foregroundColor(.orange)
+            
+            Text("Couldn't Load Diff")
+                .font(.title2)
+            
+            Text(error.localizedDescription)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Button("Try Again", action: retry)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
