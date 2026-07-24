@@ -9,7 +9,7 @@ import DifferCore
 /// service on the main actor lets `@MainActor` callers (e.g. view models) pass
 /// images without crossing an actor boundary.
 @MainActor
-public protocol ImageComparison {
+public protocol ImageComparison: Sendable {
     /// Compare two images and return the difference result
     func compare(
         reference: NSImage,

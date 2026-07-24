@@ -71,7 +71,7 @@ public actor TestRunner: TestExecution {
         return testRun
     }
     
-    public func cancelExecution() {
+    public func cancelExecution() async {
         // TODO: Implement cancellation
         currentProcess?.terminate()
         currentProcess = nil
