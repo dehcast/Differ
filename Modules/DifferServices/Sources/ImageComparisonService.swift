@@ -35,7 +35,6 @@ public final class ImageComparisonService: ImageComparison {
     /// Expressed as a fraction of the 0-255 channel range.
     private static let defaultTolerance: Double = 0.01
 
-    
     // MARK: - Public API
     
     public func compare(
@@ -109,13 +108,13 @@ public final class ImageComparisonService: ImageComparison {
         var out = refBytes
 
         for pixel in 0..<(width * height) {
-            let i = pixel * 4
-            let maxDelta = channelDelta(refBytes, curBytes, at: i)
+            let idx = pixel * 4
+            let maxDelta = channelDelta(refBytes, curBytes, at: idx)
             if Double(maxDelta) > threshold {
-                out[i] = blend(refBytes[i], hr, overlayAlpha)
-                out[i + 1] = blend(refBytes[i + 1], hg, overlayAlpha)
-                out[i + 2] = blend(refBytes[i + 2], hb, overlayAlpha)
-                out[i + 3] = 255
+                out[idx] = blend(refBytes[idx], hr, overlayAlpha)
+                out[idx + 1] = blend(refBytes[idx + 1], hg, overlayAlpha)
+                out[idx + 2] = blend(refBytes[idx + 2], hb, overlayAlpha)
+                out[idx + 3] = 255
             }
         }
 
@@ -184,8 +183,8 @@ public final class ImageComparisonService: ImageComparison {
 
         var diffCount = 0
         for pixel in 0..<totalPixels {
-            let i = pixel * 4
-            if Double(channelDelta(refBytes, curBytes, at: i)) > threshold {
+            let idx = pixel * 4
+            if Double(channelDelta(refBytes, curBytes, at: idx)) > threshold {
                 diffCount += 1
             }
         }

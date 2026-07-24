@@ -8,11 +8,24 @@ final class ImageComparisonServiceTests: XCTestCase {
 
     // MARK: - Helpers
 
+    /// Simple RGB triple used to describe test pixels (avoids large tuples).
+    private struct RGB {
+        let red: UInt8
+        let green: UInt8
+        let blue: UInt8
+
+        init(_ red: UInt8, _ green: UInt8, _ blue: UInt8) {
+            self.red = red
+            self.green = green
+            self.blue = blue
+        }
+    }
+
     /// Builds an opaque RGBA NSImage of the given size using a per-pixel fill closure.
     private func makeImage(
         width: Int,
         height: Int,
-        fill: (_ x: Int, _ y: Int) -> (UInt8, UInt8, UInt8)
+        fill: (_ x: Int, _ y: Int) -> RGB
     ) -> NSImage {
         guard let rep = NSBitmapImageRep(
             bitmapDataPlanes: nil,
@@ -32,10 +45,10 @@ final class ImageComparisonServiceTests: XCTestCase {
         for y in 0..<height {
             for x in 0..<width {
                 let offset = (y * width + x) * 4
-                let (r, g, b) = fill(x, y)
-                data[offset] = r
-                data[offset + 1] = g
-                data[offset + 2] = b
+                let pixel = fill(x, y)
+                data[offset] = pixel.red
+                data[offset + 1] = pixel.green
+                data[offset + 2] = pixel.blue
                 data[offset + 3] = 255
             }
         }
@@ -45,7 +58,7 @@ final class ImageComparisonServiceTests: XCTestCase {
         return image
     }
 
-    private func solidImage(width: Int, height: Int, color: (UInt8, UInt8, UInt8)) -> NSImage {
+    private func solidImage(width: Int, height: Int, color: RGB) -> NSImage {
         makeImage(width: width, height: height) { _, _ in color }
     }
 
@@ -53,8 +66,8 @@ final class ImageComparisonServiceTests: XCTestCase {
 
     func testIdenticalImagesReportZeroDifference() async throws {
         let service = ImageComparisonService()
-        let reference = solidImage(width: 16, height: 16, color: (200, 50, 50))
-        let current = solidImage(width: 16, height: 16, color: (200, 50, 50))
+        let reference = solidImage(width: 16, height: 16, color: RGB(200, 50, 50))
+        let current = solidImage(width: 16, height: 16, color: RGB(200, 50, 50))
 
         let result = try await service.compare(
             reference: reference,
@@ -70,8 +83,8 @@ final class ImageComparisonServiceTests: XCTestCase {
 
     func testCompletelyDifferentImagesReportFullDifference() async throws {
         let service = ImageComparisonService()
-        let reference = solidImage(width: 16, height: 16, color: (0, 0, 0))
-        let current = solidImage(width: 16, height: 16, color: (255, 255, 255))
+        let reference = solidImage(width: 16, height: 16, color: RGB(0, 0, 0))
+        let current = solidImage(width: 16, height: 16, color: RGB(255, 255, 255))
 
         let result = try await service.compare(
             reference: reference,
@@ -88,13 +101,13 @@ final class ImageComparisonServiceTests: XCTestCase {
         let service = ImageComparisonService()
         let width = 10
         let height = 10
-        let reference = solidImage(width: width, height: height, color: (255, 255, 255))
+        let reference = solidImage(width: width, height: height, color: RGB(255, 255, 255))
         // Change a known 2x2 block (4 pixels) to black.
         let current = makeImage(width: width, height: height) { x, y in
             if x < 2 && y < 2 {
-                return (0, 0, 0)
+                return RGB(0, 0, 0)
             }
-            return (255, 255, 255)
+            return RGB(255, 255, 255)
         }
 
         let result = try await service.compare(
@@ -109,8 +122,8 @@ final class ImageComparisonServiceTests: XCTestCase {
 
     func testMismatchedDimensionsThrows() async throws {
         let service = ImageComparisonService()
-        let reference = solidImage(width: 16, height: 16, color: (10, 20, 30))
-        let current = solidImage(width: 8, height: 16, color: (10, 20, 30))
+        let reference = solidImage(width: 16, height: 16, color: RGB(10, 20, 30))
+        let current = solidImage(width: 8, height: 16, color: RGB(10, 20, 30))
 
         do {
             _ = try await service.compare(
@@ -132,12 +145,12 @@ final class ImageComparisonServiceTests: XCTestCase {
         let service = ImageComparisonService()
         let width = 10
         let height = 10
-        let reference = solidImage(width: width, height: height, color: (255, 255, 255))
+        let reference = solidImage(width: width, height: height, color: RGB(255, 255, 255))
         let current = makeImage(width: width, height: height) { x, y in
             if x < 2 && y < 2 {
-                return (0, 0, 0)
+                return RGB(0, 0, 0)
             }
-            return (255, 255, 255)
+            return RGB(255, 255, 255)
         }
 
         let diffImage = try await service.generateDiffImage(
