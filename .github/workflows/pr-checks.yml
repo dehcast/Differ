@@ -10,7 +10,7 @@ permissions:
 jobs:
   pr-title:
     name: Check PR Title
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     
     steps:
     - name: Check PR title format
@@ -27,7 +27,7 @@ jobs:
 
   pr-size:
     name: Check PR Size
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-2vcpu-ubuntu-2404
     
     steps:
     - name: Checkout code
@@ -58,7 +58,7 @@ jobs:
 
   test-coverage:
     name: Test Coverage Report
-    runs-on: macos-14
+    runs-on: blacksmith-6vcpu-macos-15
     
     steps:
     - name: Checkout code
@@ -67,7 +67,7 @@ jobs:
         submodules: recursive
       
     - name: Select Xcode version
-      run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)/Contents/Developer"
+      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
       
     - name: Run DifferCore tests with coverage
       run: |
@@ -103,7 +103,7 @@ jobs:
 
   compile-time:
     name: Compilation Time Check
-    runs-on: macos-14
+    runs-on: blacksmith-6vcpu-macos-15
     permissions:
       pull-requests: write
       contents: read
@@ -115,7 +115,7 @@ jobs:
         submodules: recursive
       
     - name: Select Xcode version
-      run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -1)/Contents/Developer"
+      run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
       
     - name: Measure compilation time
       run: |
