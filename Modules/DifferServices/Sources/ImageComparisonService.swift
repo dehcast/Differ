@@ -271,6 +271,13 @@ public final class ImageComparisonService: ImageComparison {
     private static let workingColorSpace: CGColorSpace =
         CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
 
+    /// Bitmap layout pinned to memory byte order R, G, B, A. `premultipliedLast` alone
+    /// only fixes alpha placement, not byte order — CoreGraphics may otherwise choose a
+    /// native order (commonly BGRA), which would break the RGBA indexing in `channelDelta`
+    /// and the highlight logic. `byteOrder32Big` with alpha-last guarantees R,G,B,A bytes.
+    private static let rgbaBitmapInfo: UInt32 =
+        CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+
     /// Renders an `NSImage` into a normalized RGBA8 pixel buffer of the requested size.
     /// The buffer is 8 bits per channel, RGBA byte order with premultiplied alpha
     /// (`premultipliedLast`), in an explicit sRGB color space. Normalizing both inputs
@@ -284,7 +291,7 @@ public final class ImageComparisonService: ImageComparison {
         let bytesPerPixel = 4
         let bytesPerRow = width * bytesPerPixel
         let colorSpace = Self.workingColorSpace
-        let bitmapInfo = CGImageAlphaInfo.premultipliedLast.rawValue
+        let bitmapInfo = Self.rgbaBitmapInfo
 
         guard let context = CGContext(
             data: nil,
@@ -315,7 +322,7 @@ public final class ImageComparisonService: ImageComparison {
         let bytesPerPixel = 4
         let bytesPerRow = width * bytesPerPixel
         let colorSpace = Self.workingColorSpace
-        let bitmapInfo = CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue)
+        let bitmapInfo = CGBitmapInfo(rawValue: Self.rgbaBitmapInfo)
 
         guard let provider = CGDataProvider(data: Data(bytes) as CFData) else {
             return nil

@@ -241,4 +241,32 @@ final class ImageComparisonServiceTests: XCTestCase {
         XCTAssertEqual(unchanged.greenComponent, 1.0, accuracy: 0.02)
         XCTAssertEqual(unchanged.blueComponent, 1.0, accuracy: 0.02)
     }
+
+    func testChannelOrderIsRGBA() async throws {
+        // Guards against a BGRA/RGBA byte-order regression: over a black reference, a pure
+        // blue highlight must land in the blue channel (not red). If the normalized buffer
+        // were BGRA, the highlight would appear reddish and this test would fail.
+        let service = ImageComparisonService()
+        let width = 4
+        let height = 4
+        let reference = solidImage(width: width, height: height, color: RGB(0, 0, 0))
+        let current = solidImage(width: width, height: height, color: RGB(255, 255, 255))
+
+        let blue = NSColor(srgbRed: 0, green: 0, blue: 1, alpha: 1)
+        let diffImage = try await service.generateDiffImage(
+            reference: reference,
+            current: current,
+            highlightColor: blue
+        )
+
+        let tiffData = try XCTUnwrap(diffImage.tiffRepresentation,
+                                     "Diff image should provide a TIFF representation")
+        let bitmap = try XCTUnwrap(NSBitmapImageRep(data: tiffData))
+        let pixel = try XCTUnwrap(bitmap.colorAt(x: 0, y: 0))
+
+        XCTAssertGreaterThan(pixel.blueComponent, pixel.redComponent,
+                             "Blue highlight must appear in the blue channel (RGBA order)")
+        XCTAssertGreaterThan(pixel.blueComponent, pixel.greenComponent,
+                             "Blue highlight must appear in the blue channel (RGBA order)")
+    }
 }
